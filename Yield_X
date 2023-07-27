@@ -31,7 +31,7 @@ local FRAME_TRANSPARENCY = 0
 local BORDER_COLOR = Color3.fromRGB(10, 10, 10)
 local BORDER_SIZE = 0
 local BUTTON_COLOR = FRAME_COLOR --Color3.fromRGB(25, 25, 25)
-local BUTTON2_COLOR = Color3.fromRGB(40*1.25, 40*1.25, 40*1.25)
+local BUTTON2_COLOR = Color3.fromRGB(40*1.5, 40*1.5, 40*1.5)
 local TEXT_COLOR = Color3.fromRGB(220, 220, 220)
 local TEXT_FONT = Enum.Font.Nunito
 local ROUNDED_EDGES = UDim.new(0, 15)
@@ -592,7 +592,11 @@ else
 	-- Toggable Buttons
 	CreateButton("Fly_Button", "Fly", 1, nil, nil, ButtonsFrame, "Unchecked", FlyFunc)
 
-	CreateButton("Fog_Button", "Fog", 2, nil, nil, ButtonsFrame, "Checked", FogFunc)
+	CreateButton("Fog_Button", "Fog", 2, nil, nil, ButtonsFrame, "Checked", 
+		function()
+			Fog = not Fog
+		end
+	)
 
 	CreateButton("ESP_Button", "ESP", 3, nil, nil, ButtonsFrame, "Unchecked", 
 		function()
@@ -666,8 +670,6 @@ else
 		Duration = 500;
 		Button1 = "OK";
 	})
-	
-	GUILoaded = true
 end
 
 UserInputService.InputBegan:Connect(function(Input)
@@ -738,66 +740,65 @@ UserInputService.InputEnded:Connect(function(Input)
 	end
 end)
 
-RunService.Heartbeat:Connect(function()
-	if GUILoaded ~= false then
-		if GUI == nil then
-			local GUI = GUIParent:FindFirstChild("TheEvilDeveloper:YX")
-		end
-		if GUI ~= nil then
-			local Fly_Button = GetButton("Fly_Button")
+RunService.RenderStepped:Connect(function()
+	if GUI == nil then
+		local GUI = GUIParent:FindFirstChild("TheEvilDeveloper:YX")
+	end
 
-			if Fly_Button then
-				SetButton(Fly_Button, Fly)
-				if CanFly == true then
-					if Fly_Button.Button_Content.Text ~= "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">" then
-						Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
-					end
+	if GUI ~= nil then
+		local Fly_Button = GetButton("Fly_Button")
+
+		if Fly_Button then
+			SetButton(Fly_Button, Fly)
+			if CanFly == true then
+				if Fly_Button.Button_Content.Text ~= "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">" then
+					Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
 				end
 			end
-
-			local Fog_Button = GetButton("Fog_Button")
-
-			if Fog_Button then
-				SetButton(Fog_Button, Fog)
-			end
-
-			local ESP_Button = GetButton("ESP_Button")
-
-			if ESP_Button then
-				SetButton(ESP_Button, ESP)
-			end
-
-			local CollisionButton = GetButton("Collision_Button")
-
-			if CollisionButton then
-				SetButton(CollisionButton, Collision)
-			end
-
-			local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
-
-			if Infinite_Jump_Button then
-				SetButton(Infinite_Jump_Button, InfiniteJump)
-			end
-
-			local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
-
-			if Infinite_Zoom_Button then
-				SetButton(Infinite_Zoom_Button, InfiniteZoom)
-			end
-		
-		end
-		
-		local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-
-		if Humanoid == nil or Humanoid.Health <= 0 then
-			Fly = false
-			InfiniteJump = false
 		end
 
-		FogFunc()
-		ESPFunc()
-		CollisionFunc()
-		InfiniteZoomFunc()
-		InfiniteJumpFunc()
+		local Fog_Button = GetButton("Fog_Button")
+
+		if Fog_Button then
+			SetButton(Fog_Button, Fog)
+		end
+
+		local ESP_Button = GetButton("ESP_Button")
+
+		if ESP_Button then
+			SetButton(ESP_Button, ESP)
+		end
+
+		local CollisionButton = GetButton("Collision_Button")
+
+		if CollisionButton then
+			SetButton(CollisionButton, Collision)
+		end
+
+		local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
+
+		if Infinite_Jump_Button then
+			SetButton(Infinite_Jump_Button, InfiniteJump)
+		end
+
+		local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
+
+		if Infinite_Zoom_Button then
+			SetButton(Infinite_Zoom_Button, InfiniteZoom)
+		end
+
 	end
+
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+
+	if Humanoid == nil or Humanoid.Health <= 0 then
+		Fly = false
+		InfiniteJump = false
+	end
+
+	FogFunc()
+	ESPFunc()
+	CollisionFunc()
+	InfiniteZoomFunc()
+	InfiniteJumpFunc()
 end)
