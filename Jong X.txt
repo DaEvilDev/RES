@@ -1,0 +1,1240 @@
+--[[
+
+- Made by: TheEvilDeveloper
+
+- Prefix: $ for chat commands
+
+- Created: 2021/01/19, Updated: 2023/04/22
+
+- Use it at your own risk.
+
+]]
+
+local Workspace = game:GetService("Workspace")
+local VirtualUser = game:GetService("VirtualUser")
+local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local CurrentCamera = workspace.CurrentCamera
+
+local DefaultFogEnd = Lighting.FogEnd
+local DefaultFogStart = Lighting.FogStart
+local DefaultZoom = Player.CameraMaxZoomDistance
+local DefaultHandSize = nil
+local DefaultFlySpeed = 10
+
+local FlyEnabled = false
+local Flying = false
+local BigFist = false
+local InfiniteZoom = false
+local Speed = false
+local ESP = false
+local Collision = true
+local InfiniteJump = false
+local Fog = true
+local AutoStomp = false
+local AntiSlow = false
+local AntiBag = false
+local AntiFlash = false
+local RigType = nil
+local GuiParent = nil
+local Baseplate = nil
+local LastDebounce = false
+local LastLocation = nil
+local WalkSpeed = 75
+local FlySpeed = DefaultFlySpeed
+local CurrentFlySpeed = 0
+local MinimumFlySpeed = 5
+local MaximumFlySpeed = 25
+local Version = "1.0.7"
+local Prefix = "&"
+local FlyControl = {F = 0, B = 0, L = 0, R = 0}
+local Keys = {W = false, S = false, A = false, D = false}
+
+local DefaultBackgroundColor = Color3.fromRGB(0, 0, 0)
+local DefaultBorderColor = Color3.fromRGB(85, 170, 255)
+local DefaultTextSize = 12
+local DefaultFont = Enum.Font.Code
+
+repeat wait()
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid") 
+	if Humanoid ~= nil then
+		RigType = Humanoid.RigType
+	end
+	if RunService:IsStudio() then
+		GuiParent = Player.PlayerGui
+	else
+		GuiParent = CoreGui
+	end
+until RigType ~= nil and GuiParent ~= nil
+
+if RigType == Enum.HumanoidRigType.R15 then
+	DefaultHandSize = Player.Character.LeftHand.Size
+end
+
+if GuiParent == CoreGui then 
+	if CoreGui:FindFirstChild("TheEvilDeveloper: Jong X") then 
+		StarterGui:SetCore("SendNotification", {
+			Title = "Jong X "..Version;
+			Text = "Gui already exists."; 
+			Duration = 2;
+		})
+		return
+	end
+end
+
+function Draggable(Object: GuiObject, Draggable: boolean)
+	local TweenService = game:GetService("TweenService")
+	local UserInputService = game:GetService("UserInputService")
+
+	local TweenSpeed = 0.15 -- Delay
+	local DragSpeed = 0.25 -- Speed
+	local DragToggle = nil
+	local DragInput = nil
+	local DragStart = nil
+	local DragPosition = nil
+	local StartPosition = nil
+
+	local function UpdateInput(Input)
+		if not Draggable then return end        
+		local Delta = Input.Position - DragStart
+		local Location = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+		TweenService:Create(Object, TweenInfo.new(TweenSpeed), {Position = Location}):Play()
+	end
+
+	Object.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+			DragToggle = true
+			DragStart = Input.Position
+			StartPosition = Object.Position
+			Input.Changed:Connect(function()
+				if Input.UserInputState == Enum.UserInputState.End then
+					DragToggle = false
+				end
+			end)
+		end
+	end)
+
+	Object.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+			DragInput = Input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(Input)
+		if Input == DragInput and DragToggle then
+			UpdateInput(Input)
+		end
+	end)
+end
+
+function CreateBaseplate()
+	Baseplate = Instance.new("Part", Workspace.Terrain)
+	Baseplate.Name = "TheEvilDeveloper: Safeplate"
+	Baseplate.Anchored = true
+	Baseplate.CFrame = CFrame.new(10, 49, 1000, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+	Baseplate.Size = Vector3.new(35, 1, 35)
+	Baseplate.BrickColor = BrickColor.new("Cloudy grey")
+end
+
+function FlyFunc() 
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	if Humanoid ~= nil and Flying then
+		local FlyPart = Instance.new("MeshPart", Player.Character)
+		FlyPart.Size = Player.Character.HumanoidRootPart.Size
+		FlyPart.CFrame = Player.Character.HumanoidRootPart.CFrame
+		FlyPart.Transparency = 1
+		FlyPart.Anchored = false
+		FlyPart.CanCollide = false
+		FlyPart.Name = "TheEvilDeveloper: FlyPart"
+		local Weld = Instance.new("WeldConstraint", FlyPart)
+		Weld.Part0 = Player.Character.HumanoidRootPart
+		Weld.Part1 = FlyPart
+		Weld.Name = "TheEvilDeveloper: Weld"
+		local BodyGyro = Instance.new("BodyGyro", FlyPart) 
+		BodyGyro.P = 9e4
+		BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+		BodyGyro.CFrame = Player.Character.HumanoidRootPart.CFrame
+		BodyGyro.Name = "TheEvilDeveloper: BodyGyro"
+		local BodyVelocity = Instance.new("BodyVelocity", FlyPart)
+		BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+		BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+		BodyVelocity.Name = "TheEvilDeveloper: BodyVelocity"
+		repeat wait() 
+			Humanoid.PlatformStand = true
+			if FlyControl.L + FlyControl.R ~= 0 or FlyControl.F + FlyControl.B ~= 0 then 
+				CurrentFlySpeed += FlySpeed + (CurrentFlySpeed / FlySpeed) 
+				if CurrentFlySpeed > FlySpeed then 
+					CurrentFlySpeed = FlySpeed 
+				end 
+			elseif (FlyControl.L + FlyControl.R) == 0 or (FlyControl.F + FlyControl.B) ~= 0 and CurrentFlySpeed ~= 0 then 
+				CurrentFlySpeed = 0
+			end 
+			if (FlyControl.L + FlyControl.R) ~= 0 or (FlyControl.F + FlyControl.B) ~= 0 then 
+				BodyVelocity.Velocity = ((CurrentCamera.CoordinateFrame.LookVector * (FlyControl.F + FlyControl.B)) + ((CurrentCamera.CoordinateFrame * CFrame.new(FlyControl.L + FlyControl.R, (FlyControl.F + FlyControl.B) * 0.2,0).Position) - CurrentCamera.CoordinateFrame.Position)) * CurrentFlySpeed 
+			elseif (FlyControl.L + FlyControl.R) == 0 and (FlyControl.F + FlyControl.B) == 0 and CurrentFlySpeed ~= 0 then 
+				BodyVelocity.Velocity = ((CurrentCamera.CoordinateFrame.LookVector * (FlyControl.F + FlyControl.B)) + ((CurrentCamera.CoordinateFrame * CFrame.new(FlyControl.L + FlyControl.R, (FlyControl.F + FlyControl.B) * 0.2,0).Position) - CurrentCamera.CoordinateFrame.Position)) * CurrentFlySpeed
+			else 
+				BodyVelocity.Velocity = Vector3.new(0, 0, 0) 
+			end 
+			BodyGyro.CFrame = CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((0 + 0) * 360 * CurrentFlySpeed / FlySpeed), 0, 0)
+		until Flying == false or not Humanoid or Humanoid.Health < 1
+		CurrentFlySpeed = 0
+		FlyControl = {F = 0, B = 0, L = 0, R = 0}
+		FlyPart:Destroy()
+		Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+		Humanoid.PlatformStand = false
+	end
+end
+
+function DestroySeats()
+	for i, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Seat") or v:IsA("VehicleSeat") then
+			v:Destroy()
+		end
+	end
+end
+
+function NameESPFunc()
+	for i, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Humanoid") then
+			if v.Parent:FindFirstChild("HumanoidRootPart") then
+				v.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+			end
+		end
+	end
+end
+
+function AntiBagFunc()
+	if AntiBag then
+		if Player.Character:FindFirstChild("Christmas_Sock") then
+			Player.Character["Christmas_Sock"]:Destroy()
+		end
+	end
+end
+
+function ForceResetFunc()
+	if Player.Character:FindFirstChild("BodyEffects") then
+		Player.Character.BodyEffects:Destroy()
+	end
+	for i, v in pairs(Player.Character:GetChildren()) do
+		v:Destroy()
+	end
+	Flying = false
+	BigFist = false
+	Speed = false
+end
+
+function AntiSlowFunc()
+	if AntiSlow then
+		if Player.Character:FindFirstChild("BodyEffects") then
+			for i, v in pairs(Player.Character.BodyEffects.Movement:GetChildren()) do
+				if v.Name == ("NoJumping") or v.Name == ("ReduceWalk") or v.Name == ("NoWalkSpeed") then
+					v:Destroy()
+				end
+			end
+			if Player.Character.BodyEffects.Reload.Value == true then
+				Player.Character.BodyEffects.Reload.Value = false
+			end
+		end
+	end
+end
+
+function InfiniteJumpFunc()
+	if InfiniteJump then
+		local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			local function Action(Object, Function) if Object ~= nil and InfiniteJump then Function(Object) end end
+			UserInputService.InputBegan:Connect(function(Input)
+				if Input.KeyCode == Enum.KeyCode.Space then
+					Action(Humanoid, function(self)
+						if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+							Action(self.Parent.HumanoidRootPart, function(self)
+								self.Velocity = Vector3.new(0, 50, 0);
+							end)
+						end
+					end)
+				end
+			end)
+		end 
+	end
+end
+
+function GoToFunc(Username)
+	local PlayerFolder = Workspace:FindFirstChild("Players")
+	if PlayerFolder then
+		local _Player = PlayerFolder:FindFirstChild(Username)
+		if _Player then
+			Player.Character.HumanoidRootPart.CFrame = _Player.HumanoidRootPart.CFrame
+		else
+			StarterGui:SetCore("SendNotification", {
+				Title = "Jong X "..Version;
+				Text = "Player does not exist."; 
+				Duration = 2;
+			})
+		end
+	else
+		local _Player = Players:FindFirstChild(Username)
+		if _Player then       
+			Player.Character.HumanoidRootPart.CFrame = _Player.Character.HumanoidRootPart.CFrame
+		else
+			StarterGui:SetCore("SendNotification", {
+				Title = "Jong X "..Version;
+				Text = "Player does not exist."; 
+				Duration = 2;
+			})
+		end
+	end    
+end
+
+function FogFunc()
+	if Fog then
+		Lighting.FogEnd = DefaultFogEnd
+		Lighting.FogStart = DefaultFogStart
+	else
+		Lighting.FogEnd = math.huge
+		Lighting.FogStart = 0
+	end
+end
+
+function ZoomFunc()
+	if InfiniteZoom then
+		Player.CameraMaxZoomDistance = math.huge
+	else
+		Player.CameraMaxZoomDistance = DefaultZoom
+	end
+end
+
+function SpeedFunc()
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	if Humanoid then
+		if Speed then
+			Humanoid.Name = "TheEvilDeveloper: Humanoid"
+			Humanoid.WalkSpeed = WalkSpeed
+		else
+			Humanoid.Name = "Humanoid"
+			Humanoid.WalkSpeed = 16
+		end
+		if Humanoid.Health < 1 then
+			Speed = false
+		end
+	else
+		Speed = false
+	end
+end
+
+function CollisionFunc()
+	if Collision then
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = true
+				end
+			end
+		end
+	else
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end
+end
+
+function NakedFunc()
+	for i, v in pairs(Player.Character:GetChildren()) do
+		if v:IsA("Shirt") or v:IsA("Pants") or v:IsA("ShirtGraphic") then
+			v:Destroy()
+		end
+	end
+end
+
+function ESPFunc()
+	if ESP ~= false then
+		for i, v in pairs(Workspace:GetDescendants()) do
+			if v:IsA("Humanoid") then
+				local _Player = Players:GetPlayerFromCharacter(v.Parent)
+				if _Player and _Player ~= Player then
+					if _Player.Character.HumanoidRootPart:FindFirstChild("TheEvilDeveloper:ESP") == nil then
+						local ESPGui = Instance.new("BillboardGui", v.RootPart)
+						ESPGui.AlwaysOnTop = true
+						ESPGui.Adornee = v.RootPart
+						ESPGui.Size = UDim2.new(5, 0, 5, 0)
+						ESPGui.Name = "TheEvilDeveloper:ESP"
+						local ESPImage = Instance.new("ImageLabel", ESPGui)
+						ESPImage.Size = UDim2.new(1, 0, 1, 0)
+						ESPImage.Image = "rbxassetid://8257933359" -- Other recommanded id: 6328449823
+						ESPImage.BackgroundTransparency = 1
+						ESPImage.ImageColor3 = DefaultBorderColor
+						ESPImage.Name = "TheEvilDeveloper:ESP_Image"
+						local ESPText = Instance.new("TextLabel", ESPGui)
+						ESPText.BackgroundTransparency = 1
+						ESPText.AnchorPoint = Vector2.new(0.5, 0.5)
+						ESPText.Position = UDim2.new(0.5, 0, 0.5, 0)
+						ESPText.Size = UDim2.new(0.75, 0, 1, 0)
+						ESPText.Font = DefaultFont
+						ESPText.TextColor3 = DefaultBorderColor
+						ESPText.TextScaled = true
+						ESPText.Text = v.Parent.Name
+						ESPText.Name = "TheEvilDeveloper:ESP_Text"
+					end
+				end
+			end
+		end
+	else
+		for i, v in pairs(Workspace:GetDescendants()) do
+			if v.Name == "TheEvilDeveloper:ESP" then
+				v:Destroy()
+			end
+		end
+	end
+end
+
+function AutoStompFunc()
+	if AutoStomp then
+		if ReplicatedStorage:FindFirstChild("MainEvent") then
+			ReplicatedStorage.MainEvent:FireServer("Stomp")
+		end
+	end
+end
+
+function BigFistFunc()
+	if RigType == Enum.HumanoidRigType.R15 then
+		DestroySeats()
+		if BigFist then
+			for i, v in pairs(Player.Character:GetDescendants()) do
+				if v:IsA("MeshPart") then 
+					v.Massless = true
+					v.CanCollide = false
+					v.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+				end
+			end
+
+			Player.Character.RightHand.Size = Vector3.new(25, 25, 25)
+			Player.Character.LeftHand.Size = Vector3.new(25, 25, 25)
+			Player.Character.RightHand.Transparency = 1
+			Player.Character.LeftHand.Transparency = 1
+
+			local SelectionBox = Instance.new("SelectionBox", Player.Character.HumanoidRootPart)
+			SelectionBox.Adornee = Player.Character.LeftHand
+			SelectionBox.Color3 = DefaultBorderColor
+			SelectionBox.SurfaceColor3 = DefaultBorderColor
+			SelectionBox.LineThickness = 0.7
+			SelectionBox.SurfaceTransparency = 0.9
+			SelectionBox.Name = "TheEvilDeveloper: SelectionBox"
+
+			Player.Character.BodyEffects.SpecialParts.LeftHand.Size = Vector3.new(25, 25, 25)
+		else
+			Player.Character.RightHand.Size = DefaultHandSize
+			Player.Character.LeftHand.Size = DefaultHandSize
+			Player.Character.HumanoidRootPart["TheEvilDeveloper: SelectionBox"]:Destroy()
+			Player.Character.RightHand.Transparency = 0
+			Player.Character.LeftHand.Transparency = 0
+			Player.Character.BodyEffects.SpecialParts.LeftHand.Size = DefaultHandSize
+		end
+	end
+end
+
+function FindFunc()
+	local OldCFrame = Player.Character.HumanoidRootPart.CFrame
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-680.2, 19.75, -254.97)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-115.495, 19.756, -453.45)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-418.208, 19.25, -748.694)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-418.208, 19.25, -748.694)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(33, 19.75, -184.6)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(243.495, 62, -450.5)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-103.53, 19.75, -220.21)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-581.775, 19.7549, -485.23)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = CFrame.new(-399.655, 19.7552, -461.55)
+	wait()
+	Player.Character.HumanoidRootPart.CFrame = OldCFrame
+end
+
+function RejoinFunc()
+	wait(2)
+	TeleportService:Teleport(game.PlaceId, Player)
+end
+
+function TeleportToolFunc()
+	if Player.Backpack:FindFirstChild("Teleport Tool") then 
+		StarterGui:SetCore("SendNotification", {
+			Title = "Jong X "..Version;
+			Text = "Tool already exists."; 
+			Duration = 2;
+		})
+		return
+	end
+
+	local Tool = Instance.new("Tool", Player.Backpack)
+	Tool.RequiresHandle = false
+	Tool.ToolTip = "Made by: TheEvilDeveloper"
+	Tool.Name = "Teleport Tool"
+
+	Tool.Activated:Connect(function()
+		Player.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position)
+	end)
+end
+
+function ChatLogsFunc()
+	Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Position = UDim2.new(0, 0, 1, -42)
+	Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = true
+end
+
+function SafeZoneFunc()
+	if Baseplate ~= nil then
+		Player.Character.HumanoidRootPart.CFrame = Baseplate.CFrame + Vector3.new(0, 10, 0)
+	else
+		CreateBaseplate()
+		return
+	end
+end
+
+function BulletproofFunc()
+	if Player.Character:FindFirstChild("BodyEffects") then
+		Player.Character.BodyEffects.Armor:Destroy()
+		Player.Character.BodyEffects.Defense.CurrentTimeBlock:Destroy()
+	end
+end
+
+function AntiFlashFunc()
+	if AntiFlash then
+		if Player.PlayerGui:FindFirstChild("MainScreenGui") then
+			if Player.PlayerGui.MainScreenGui:FindFirstChild("whiteScreen") then
+				Player.PlayerGui.MainScreenGui.whiteScreen:Destroy()
+			end
+		end
+	end
+end
+
+CreateBaseplate()
+
+StarterGui:SetCore("SendNotification", {
+	Title = "Jong X "..Version;
+	Text = "Loaded \n Show/Hide: 'RightCtrl'\n Made by: TheEvilDeveloper"; 
+	Duration = 25;
+	Button1 = "Okay";
+})
+
+local Gui = Instance.new("ScreenGui", GuiParent)
+local MainFrame = Instance.new("Frame", Gui)
+local Title = Instance.new("TextLabel", MainFrame)
+local ButtonsFrame = Instance.new("ScrollingFrame", MainFrame)
+local UiListLayout = Instance.new("UIListLayout", ButtonsFrame)
+local CreditsFrame = Instance.new("Frame", MainFrame)
+local Title2 = Instance.new("TextLabel", CreditsFrame)
+local CreatorTextLabel = Instance.new("TextLabel", CreditsFrame)
+local DiscordTextLabel = Instance.new("TextLabel", CreditsFrame)
+local DiscordTextBox = Instance.new("TextBox", CreditsFrame)
+local CreditsCloseButton = Instance.new("TextButton", CreditsFrame)
+local UsernameTextBox = Instance.new("TextBox", ButtonsFrame)
+local FlySpeedTextBox = Instance.new("TextBox", ButtonsFrame)
+local SpeedButton = Instance.new("TextButton", ButtonsFrame)
+local FlyButton = Instance.new("TextButton", ButtonsFrame)
+local BigFistButton = Instance.new("TextButton", ButtonsFrame)
+local FogButton = Instance.new("TextButton", ButtonsFrame)
+local CollisionButton = Instance.new("TextButton", ButtonsFrame)
+local InfiniteZoomButton = Instance.new("TextButton", ButtonsFrame)
+local InfiniteJumpButton = Instance.new("TextButton", ButtonsFrame)
+local BulletproofButton = Instance.new("TextButton", ButtonsFrame)
+local AutoStompButton = Instance.new("TextButton", ButtonsFrame)
+local AntiSlowButton = Instance.new("TextButton", ButtonsFrame)
+local AntiBagButton = Instance.new("TextButton", ButtonsFrame)
+local AntiFlashButton = Instance.new("TextButton", ButtonsFrame)
+local ESPButton = Instance.new("TextButton", ButtonsFrame)
+local GoToButton = Instance.new("TextButton", ButtonsFrame)
+local ForceResetButton = Instance.new("TextButton", ButtonsFrame)
+local NameESPButton = Instance.new("TextButton", ButtonsFrame)
+local FindButton = Instance.new("TextButton", ButtonsFrame)
+local RejoinButton = Instance.new("TextButton", ButtonsFrame)
+local TeleportToolButton = Instance.new("TextButton", ButtonsFrame)
+local ChatLogsButton = Instance.new("TextButton", ButtonsFrame)
+local SafeZoneButton = Instance.new("TextButton", ButtonsFrame)
+local NakedButton = Instance.new("TextButton", ButtonsFrame)
+local CreditsButton = Instance.new("TextButton", ButtonsFrame)
+
+Gui.Name = "TheEvilDeveloper: Jong X"
+
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Size = UDim2.new(0, 250, 0, 325)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = DefaultBackgroundColor
+MainFrame.BorderColor3 =  DefaultBorderColor
+MainFrame.Name = "Main-Frame"
+MainFrame.ClipsDescendants = true
+
+Title.AnchorPoint = Vector2.new(0.5, 0)
+Title.Size = UDim2.new(0.85, 0, 0.165, 0)
+Title.Position = UDim2.new(0.5, 0, 0, 0)
+Title.Text = "Jong X"
+Title.BackgroundTransparency = 1
+Title.TextSize = 45
+Title.TextColor3 = DefaultBorderColor
+Title.Font = DefaultFont
+Title.Active = false
+Title.Selectable = false
+Title.Name = "Title"
+
+ButtonsFrame.AnchorPoint = Vector2.new(0.5, 0)
+ButtonsFrame.Size = UDim2.new(0.75, 0, 0.75, 0)
+ButtonsFrame.Position = UDim2.new(0.5, 0, 0.175, 0)
+ButtonsFrame.BackgroundColor3 = DefaultBackgroundColor
+ButtonsFrame.BorderColor3 = DefaultBorderColor
+ButtonsFrame.ScrollBarThickness = 5
+ButtonsFrame.CanvasSize = UDim2.new(0, 0, 2.65, 0)
+ButtonsFrame.ScrollBarImageColor3 = DefaultBorderColor
+ButtonsFrame.TopImage = "rbxassetid://20121664"
+ButtonsFrame.MidImage = "rbxassetid://20121664"
+ButtonsFrame.BottomImage = "rbxassetid://20121664"
+ButtonsFrame.ScrollBarImageColor3 = DefaultBorderColor
+ButtonsFrame.VerticalScrollBarPosition = "Right"
+ButtonsFrame.ScrollBarThickness = 0
+ButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+ButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ButtonsFrame.Active = false
+
+ButtonsFrame.Name = "Buttons-Frame"
+
+UiListLayout.Padding = UDim.new(0, 3)
+UiListLayout.SortOrder = "LayoutOrder"
+
+CreditsFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+CreditsFrame.Size = UDim2.new(1, 0, 1, 0)
+CreditsFrame.Position = UDim2.new(-0.5, 0, 0.5, 0)
+CreditsFrame.BackgroundColor3 = DefaultBackgroundColor
+CreditsFrame.BorderColor3 =  DefaultBorderColor
+CreditsFrame.Name = "Credits-Frame"
+
+Title2.AnchorPoint = Vector2.new(0.5, 0)
+Title2.Size = UDim2.new(0.85, 0, 0.165, 0)
+Title2.Position = UDim2.new(0.5, 0, 0, 0)
+Title2.Text = "Credits"
+Title2.BackgroundTransparency = 1
+Title2.TextSize = 45
+Title2.TextColor3 = DefaultBorderColor
+Title2.Font = DefaultFont
+Title2.Active = false
+Title2.Selectable = false
+Title2.Name = "Title"
+
+CreatorTextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+CreatorTextLabel.Size = UDim2.new(0.95, 0, 0.1, 0)
+CreatorTextLabel.Position = UDim2.new(0.5, 0, 0.25, 0)
+CreatorTextLabel.Font = DefaultFont
+CreatorTextLabel.BackgroundTransparency = 1
+CreatorTextLabel.TextScaled = true
+CreatorTextLabel.Text = "Made by: TheEvilDeveloper"
+CreatorTextLabel.TextColor3 = DefaultBorderColor
+CreatorTextLabel.Name = "Creator-Text-Label"
+
+DiscordTextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+DiscordTextLabel.Size = UDim2.new(0.95, 0, 0.1, 0)
+DiscordTextLabel.Position = UDim2.new(0.5, 0, 0.45, 0)
+DiscordTextLabel.Font = DefaultFont
+DiscordTextLabel.BackgroundTransparency = 1
+DiscordTextLabel.TextScaled = true
+DiscordTextLabel.Text = "Join our discord server!"
+DiscordTextLabel.TextColor3 = DefaultBorderColor
+DiscordTextLabel.Name = "Discord-Text-Label"
+
+DiscordTextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+DiscordTextBox.Size = UDim2.new(0.85, 0, 0, 50)
+DiscordTextBox.Position = UDim2.new(0.5, 0, 0.645, 0)
+DiscordTextBox.BackgroundColor3 = DefaultBackgroundColor
+DiscordTextBox.BorderColor3 = DefaultBorderColor
+DiscordTextBox.TextSize = DefaultTextSize
+DiscordTextBox.TextColor3 = DefaultBorderColor
+DiscordTextBox.Name = "Discord-Text-Box"
+DiscordTextBox.Font = DefaultFont
+DiscordTextBox.Text = "https://discord.gg/Wf3VPU7Zez"
+DiscordTextBox.TextEditable = false
+DiscordTextBox.ClearTextOnFocus = false
+DiscordTextBox.TextScaled = true
+
+CreditsCloseButton.AnchorPoint = Vector2.new(0.5, 0.5)
+CreditsCloseButton.Size = UDim2.new(0.5, 0, 0, 32)
+CreditsCloseButton.Position = UDim2.new(0.5, 0, 0.85, 0)
+CreditsCloseButton.BackgroundColor3 = DefaultBackgroundColor
+CreditsCloseButton.BorderColor3 = DefaultBorderColor
+CreditsCloseButton.Text = "Close"
+CreditsCloseButton.Font = DefaultFont
+CreditsCloseButton.TextColor3 = DefaultBorderColor
+CreditsCloseButton.TextSize = 14
+CreditsCloseButton.Name = "Credits-Close-Button"
+
+FlySpeedTextBox.BackgroundColor3 = DefaultBackgroundColor
+FlySpeedTextBox.BorderSizePixel = 0
+FlySpeedTextBox.TextSize = DefaultTextSize
+FlySpeedTextBox.TextColor3 = DefaultBorderColor
+FlySpeedTextBox.Name = "FlySpeed-Text-Box"
+FlySpeedTextBox.Font = DefaultFont
+FlySpeedTextBox.Text = tostring(DefaultFlySpeed)
+FlySpeedTextBox.PlaceholderColor3 = DefaultBorderColor
+FlySpeedTextBox.PlaceholderText = "Fly Speed 1 -> 25"
+FlySpeedTextBox.Size = UDim2.new(1, 0, 0, 32)
+FlySpeedTextBox.ClearTextOnFocus = false
+
+SpeedButton.BackgroundColor3 = DefaultBackgroundColor
+SpeedButton.BorderSizePixel = 0
+SpeedButton.TextSize = DefaultTextSize
+SpeedButton.LayoutOrder = 2
+SpeedButton.TextColor3 = DefaultBorderColor
+SpeedButton.Name = "Speed-Button"
+SpeedButton.Font = DefaultFont
+SpeedButton.Size = UDim2.new(1, 0, 0, 32)
+
+FlyButton.BackgroundColor3 = DefaultBackgroundColor
+FlyButton.BorderSizePixel = 0
+FlyButton.TextSize = DefaultTextSize
+FlyButton.LayoutOrder = 1
+FlyButton.TextColor3 = DefaultBorderColor
+FlyButton.Name = "Fly-Button"
+FlyButton.Font = DefaultFont
+FlyButton.Size = UDim2.new(1, 0, 0, 32)
+
+BigFistButton.BackgroundColor3 = DefaultBackgroundColor
+BigFistButton.BorderSizePixel = 0
+BigFistButton.TextSize = DefaultTextSize
+BigFistButton.LayoutOrder = 3
+BigFistButton.TextColor3 = DefaultBorderColor
+BigFistButton.Name = "Big-Fist-Button"
+BigFistButton.Font = DefaultFont
+BigFistButton.Text = "Big Fist"
+BigFistButton.Size = UDim2.new(1, 0, 0, 32)
+
+FogButton.BackgroundColor3 = DefaultBackgroundColor
+FogButton.BorderSizePixel = 0
+FogButton.TextSize = DefaultTextSize
+FogButton.LayoutOrder = 4
+FogButton.TextColor3 = DefaultBorderColor
+FogButton.Name = "Fog-Button"
+FogButton.Font = DefaultFont
+FogButton.Size = UDim2.new(1, 0, 0, 32)
+
+CollisionButton.BackgroundColor3 = DefaultBackgroundColor
+CollisionButton.BorderSizePixel = 0
+CollisionButton.TextSize = DefaultTextSize
+CollisionButton.LayoutOrder = 5
+CollisionButton.TextColor3 = DefaultBorderColor
+CollisionButton.Name = "Collision-Button"
+CollisionButton.Font = DefaultFont
+CollisionButton.Size = UDim2.new(1, 0, 0, 32)
+
+InfiniteZoomButton.BackgroundColor3 = DefaultBackgroundColor
+InfiniteZoomButton.BorderSizePixel = 0
+InfiniteZoomButton.TextSize = DefaultTextSize
+InfiniteZoomButton.LayoutOrder = 6
+InfiniteZoomButton.TextColor3 = DefaultBorderColor
+InfiniteZoomButton.Name = "Infinite-Zoom-Button"
+InfiniteZoomButton.Font = DefaultFont
+InfiniteZoomButton.Size = UDim2.new(1, 0, 0, 32)
+
+InfiniteJumpButton.BackgroundColor3 = DefaultBackgroundColor
+InfiniteJumpButton.BorderSizePixel = 0
+InfiniteJumpButton.TextSize = DefaultTextSize
+InfiniteJumpButton.LayoutOrder = 7
+InfiniteJumpButton.TextColor3 = DefaultBorderColor
+InfiniteJumpButton.Name = "Infinite-Jump-Button"
+InfiniteJumpButton.Font = DefaultFont
+InfiniteJumpButton.Size = UDim2.new(1, 0, 0, 32)
+
+AutoStompButton.BackgroundColor3 = DefaultBackgroundColor
+AutoStompButton.BorderSizePixel = 0
+AutoStompButton.TextSize = DefaultTextSize
+AutoStompButton.LayoutOrder = 9
+AutoStompButton.TextColor3 = DefaultBorderColor
+AutoStompButton.Name = "Auto-Stomp-Button"
+AutoStompButton.Font = DefaultFont
+AutoStompButton.Size = UDim2.new(1, 0, 0, 32)
+
+AntiSlowButton.BackgroundColor3 = DefaultBackgroundColor
+AntiSlowButton.BorderSizePixel = 0
+AntiSlowButton.TextSize = DefaultTextSize
+AntiSlowButton.LayoutOrder = 10
+AntiSlowButton.TextColor3 = DefaultBorderColor
+AntiSlowButton.Name = "Anti-Slow-Button"
+AntiSlowButton.Font = DefaultFont
+AntiSlowButton.Size = UDim2.new(1, 0, 0, 32)
+
+AntiBagButton.BackgroundColor3 = DefaultBackgroundColor
+AntiBagButton.BorderSizePixel = 0
+AntiBagButton.TextSize = DefaultTextSize
+AntiBagButton.LayoutOrder = 11
+AntiBagButton.TextColor3 = DefaultBorderColor
+AntiBagButton.Name = "Anti-Bag-Button"
+AntiBagButton.Font = DefaultFont
+AntiBagButton.Size = UDim2.new(1, 0, 0, 32)
+
+AntiFlashButton.BackgroundColor3 = DefaultBackgroundColor
+AntiFlashButton.BorderSizePixel = 0
+AntiFlashButton.TextSize = DefaultTextSize
+AntiFlashButton.LayoutOrder = 12
+AntiFlashButton.TextColor3 = DefaultBorderColor
+AntiFlashButton.Name = "Anti-Flash-Button"
+AntiFlashButton.Font = DefaultFont
+AntiFlashButton.Size = UDim2.new(1, 0, 0, 32)
+
+ESPButton.BackgroundColor3 = DefaultBackgroundColor
+ESPButton.BorderSizePixel = 0
+ESPButton.TextSize = DefaultTextSize
+ESPButton.LayoutOrder = 13
+ESPButton.TextColor3 = DefaultBorderColor
+ESPButton.Name = "ESP-Button"
+ESPButton.Font = DefaultFont
+ESPButton.Size = UDim2.new(1, 0, 0, 32)
+
+UsernameTextBox.BackgroundColor3 = DefaultBackgroundColor
+UsernameTextBox.BorderSizePixel = 0
+UsernameTextBox.TextSize = DefaultTextSize
+UsernameTextBox.LayoutOrder = 14
+UsernameTextBox.TextColor3 = DefaultBorderColor
+UsernameTextBox.Name = "Username-Text-Box"
+UsernameTextBox.Font = DefaultFont
+UsernameTextBox.Text = ""
+UsernameTextBox.PlaceholderColor3 = DefaultBorderColor
+UsernameTextBox.PlaceholderText = "Player Username"
+UsernameTextBox.Size = UDim2.new(1, 0, 0, 32)
+UsernameTextBox.ClearTextOnFocus = false
+
+GoToButton.BackgroundColor3 = DefaultBackgroundColor
+GoToButton.BorderSizePixel = 0
+GoToButton.TextSize = DefaultTextSize
+GoToButton.LayoutOrder = 15
+GoToButton.TextColor3 = DefaultBorderColor
+GoToButton.Name = "Go-To-Button"
+GoToButton.Font = DefaultFont
+GoToButton.Text = "Go to"
+GoToButton.Size = UDim2.new(1, 0, 0, 32)
+
+ForceResetButton.BackgroundColor3 = DefaultBackgroundColor
+ForceResetButton.BorderSizePixel = 0
+ForceResetButton.TextSize = DefaultTextSize
+ForceResetButton.LayoutOrder = 16
+ForceResetButton.TextColor3 = DefaultBorderColor
+ForceResetButton.Name = "Force-Reset-Button"
+ForceResetButton.Font = DefaultFont
+ForceResetButton.Text = "Force Reset"
+ForceResetButton.Size = UDim2.new(1, 0, 0, 32)
+
+NameESPButton.BackgroundColor3 = DefaultBackgroundColor
+NameESPButton.BorderSizePixel = 0
+NameESPButton.TextSize = DefaultTextSize
+NameESPButton.LayoutOrder = 17
+NameESPButton.TextColor3 = DefaultBorderColor
+NameESPButton.Name = "Name-ESP-Button"
+NameESPButton.Font = DefaultFont
+NameESPButton.Text = "Name-ESP"
+NameESPButton.Size = UDim2.new(1, 0, 0, 32)
+
+FindButton.BackgroundColor3 = DefaultBackgroundColor
+FindButton.BorderSizePixel = 0
+FindButton.TextSize = DefaultTextSize
+FindButton.LayoutOrder = 18
+FindButton.TextColor3 = DefaultBorderColor
+FindButton.Name = "Find-Button"
+FindButton.Font = DefaultFont
+FindButton.Text = "LockPicker & Knife Finder"
+FindButton.Size = UDim2.new(1, 0, 0, 32)
+
+RejoinButton.BackgroundColor3 = DefaultBackgroundColor
+RejoinButton.BorderSizePixel = 0
+RejoinButton.TextSize = DefaultTextSize
+RejoinButton.LayoutOrder = 19
+RejoinButton.TextColor3 = DefaultBorderColor
+RejoinButton.Name = "Rejoin-Button"
+RejoinButton.Font = DefaultFont
+RejoinButton.Text = "Rejoin"
+RejoinButton.Size = UDim2.new(1, 0, 0, 32)
+
+TeleportToolButton.BackgroundColor3 = DefaultBackgroundColor
+TeleportToolButton.BorderSizePixel = 0
+TeleportToolButton.TextSize = DefaultTextSize
+TeleportToolButton.LayoutOrder = 20
+TeleportToolButton.TextColor3 = DefaultBorderColor
+TeleportToolButton.Name = "Teleport-Tool-Button"
+TeleportToolButton.Font = DefaultFont
+TeleportToolButton.Text = "Teleport Tool"
+TeleportToolButton.Size = UDim2.new(1, 0, 0, 32)
+
+ChatLogsButton.BackgroundColor3 = DefaultBackgroundColor
+ChatLogsButton.BorderSizePixel = 0
+ChatLogsButton.TextSize = DefaultTextSize
+ChatLogsButton.LayoutOrder = 21
+ChatLogsButton.TextColor3 = DefaultBorderColor
+ChatLogsButton.Name = "Chat-Logs-Button"
+ChatLogsButton.Font = DefaultFont
+ChatLogsButton.Text = "Chat Logs"
+ChatLogsButton.Size = UDim2.new(1, 0, 0, 32)
+
+SafeZoneButton.BackgroundColor3 = DefaultBackgroundColor
+SafeZoneButton.BorderSizePixel = 0
+SafeZoneButton.TextSize = DefaultTextSize
+SafeZoneButton.LayoutOrder = 23
+SafeZoneButton.TextColor3 = DefaultBorderColor
+SafeZoneButton.Name = "Safe-Zone-Button"
+SafeZoneButton.Font = DefaultFont
+SafeZoneButton.Text = "Safe Zone"
+SafeZoneButton.Size = UDim2.new(1, 0, 0, 32)
+
+NakedButton.BackgroundColor3 = DefaultBackgroundColor
+NakedButton.BorderSizePixel = 0
+NakedButton.TextSize = DefaultTextSize
+NakedButton.LayoutOrder = 24
+NakedButton.TextColor3 = DefaultBorderColor
+NakedButton.Name = "Naked-Button"
+NakedButton.Font = DefaultFont
+NakedButton.Text = "Naked"
+NakedButton.Size = UDim2.new(1, 0, 0, 32)
+
+BulletproofButton.BackgroundColor3 = DefaultBackgroundColor
+BulletproofButton.BorderSizePixel = 0
+BulletproofButton.TextSize = DefaultTextSize
+BulletproofButton.LayoutOrder = 25
+BulletproofButton.TextColor3 = DefaultBorderColor
+BulletproofButton.Name = "Bulletproof-Button"
+BulletproofButton.Font = DefaultFont
+BulletproofButton.Size = UDim2.new(1, 0, 0, 32)
+BulletproofButton.Text = "Bulletproof"
+
+CreditsButton.BackgroundColor3 = DefaultBackgroundColor
+CreditsButton.BorderSizePixel = 0
+CreditsButton.TextSize = DefaultTextSize
+CreditsButton.LayoutOrder = 26
+CreditsButton.TextColor3 = DefaultBorderColor
+CreditsButton.Name = "Credits-Button"
+CreditsButton.Font = DefaultFont
+CreditsButton.Text = "Credits"
+CreditsButton.Size = UDim2.new(1, 0, 0, 32)
+
+SpeedButton.MouseButton1Down:Connect(function()
+	Speed = not Speed	
+end)
+
+FlyButton.MouseButton1Down:Connect(function()
+	FlyEnabled = true
+	Flying = not Flying
+	FlyFunc()
+end)
+
+BigFistButton.MouseButton1Down:Connect(function()
+	if RigType == Enum.HumanoidRigType.R15 then
+		BigFist = not BigFist
+		BigFistFunc()
+	else
+		StarterGui:SetCore("SendNotification", {
+			Title = "Jong X "..Version;
+			Text = "R6 Is not supported!"; 
+			Duration = 2;
+		})
+	end
+end)
+
+FogButton.MouseButton1Down:Connect(function()
+	Fog = not Fog
+end)
+
+CollisionButton.MouseButton1Down:Connect(function()
+	Collision = not Collision
+end)
+
+InfiniteZoomButton.MouseButton1Down:Connect(function()
+	InfiniteZoom = not InfiniteZoom
+end)
+
+InfiniteJumpButton.MouseButton1Down:Connect(function()
+	InfiniteJump = not InfiniteJump
+end)
+
+BulletproofButton.MouseButton1Down:Connect(function()
+	BulletproofFunc()    
+end)
+
+AutoStompButton.MouseButton1Down:Connect(function()
+	AutoStomp = not AutoStomp
+end)
+
+AntiSlowButton.MouseButton1Down:Connect(function()
+	AntiSlow = not AntiSlow
+end)
+
+AntiBagButton.MouseButton1Down:Connect(function()
+	AntiBag = not AntiBag
+end)
+
+AntiFlashButton.MouseButton1Down:Connect(function()
+	AntiFlash = not AntiFlash
+end)
+
+ESPButton.MouseButton1Down:Connect(function()
+	ESP = not ESP
+	ESPFunc()
+end)
+
+GoToButton.MouseButton1Down:Connect(function()
+	GoToFunc(UsernameTextBox.Text)
+end)
+
+ForceResetButton.MouseButton1Down:Connect(function()
+	ForceResetFunc()
+end)
+
+NameESPButton.MouseButton1Down:Connect(function()
+	NameESPFunc()
+end)
+
+FindButton.MouseButton1Down:Connect(function()
+	FindFunc()
+end)
+
+RejoinButton.MouseButton1Down:Connect(function()
+	RejoinFunc()
+end)
+
+TeleportToolButton.MouseButton1Down:Connect(function()
+	TeleportToolFunc()
+end)
+
+ChatLogsButton.MouseButton1Down:Connect(function()
+	ChatLogsFunc()
+end)
+
+SafeZoneButton.MouseButton1Down:Connect(function()
+	SafeZoneFunc()
+end)
+
+NakedButton.MouseButton1Down:Connect(function()
+	NakedFunc()
+end)
+
+CreditsButton.MouseButton1Down:Connect(function()
+	CreditsFrame:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.15, false, nil)
+end)
+
+CreditsCloseButton.MouseButton1Down:Connect(function()
+	CreditsFrame:TweenPosition(UDim2.new(-0.5, 0, 0.5, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.15, false, nil)
+end)
+
+FlySpeedTextBox.FocusLost:Connect(function()
+	local NewSpeed = tonumber(FlySpeedTextBox.Text)
+	if NewSpeed ~= nil then
+		if NewSpeed < MinimumFlySpeed or NewSpeed > MaximumFlySpeed then
+			StarterGui:SetCore("SendNotification", {
+				Title = "Jong X "..Version;
+				Text = "Invaild number!"; 
+				Duration = 1;
+			})
+			FlySpeedTextBox.Text = tostring(DefaultFlySpeed)
+		else
+			StarterGui:SetCore("SendNotification", {
+				Title = "Jong X "..Version;
+				Text = "Fly Speed Changed to "..tostring(NewSpeed); 
+				Duration = 1;
+			})
+			FlySpeed = math.clamp(NewSpeed, MinimumFlySpeed, MaximumFlySpeed)
+		end
+	else
+		StarterGui:SetCore("SendNotification", {
+			Title = "Jong X "..Version;
+			Text = "Only numbers!"; 
+			Duration = 1;
+		})
+		FlySpeed = DefaultFlySpeed
+		FlySpeedTextBox.Text = tostring(DefaultFlySpeed)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(Input)
+	if Input.KeyCode == Enum.KeyCode.RightControl then
+		if LastDebounce == false then
+			LastDebounce = true
+			
+			if MainFrame.Position == UDim2.new(-1.1, 0, MainFrame.Position.Y.Scale, 0) then
+				MainFrame:TweenPosition(LastLocation, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.25, false, nil)
+			else
+				LastLocation = MainFrame.Position
+				wait(0.05)
+				MainFrame:TweenPosition(UDim2.new(-1.1, 0, MainFrame.Position.Y.Scale, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.25, false, nil)
+			end
+			
+			wait(0.24)
+			
+			LastDebounce = false
+		end
+		
+	elseif Input.KeyCode == Enum.KeyCode.X and FlyEnabled then
+		Flying = not Flying
+		FlyFunc()
+	elseif Input.KeyCode == Enum.KeyCode.W then
+		Keys.W = true
+		if Flying then
+			FlyControl.F = FlySpeed
+		end  
+	elseif Input.KeyCode == Enum.KeyCode.S then
+		Keys.S = true
+		if Flying then
+			FlyControl.B = -FlySpeed
+		end  
+	elseif Input.KeyCode == Enum.KeyCode.A then
+		Keys.A = true
+		if Flying then
+			FlyControl.L = -FlySpeed
+		end  
+	elseif Input.KeyCode == Enum.KeyCode.D then
+		Keys.D = true
+		if Flying then
+			FlyControl.R = FlySpeed
+		end    
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(Input)
+	if Input.KeyCode == Enum.KeyCode.W then
+		Keys.W = false
+		if Flying then
+			FlyControl.F = 0
+		end
+	elseif Input.KeyCode == Enum.KeyCode.S then
+		Keys.S = false
+		if Flying then
+			FlyControl.B = 0
+		end
+	elseif Input.KeyCode == Enum.KeyCode.A then
+		Keys.A = false
+		if Flying then
+			FlyControl.L = 0
+		end
+	elseif Input.KeyCode == Enum.KeyCode.D then
+		Keys.D = false
+		if Flying then
+			FlyControl.R = 0
+		end
+	end
+end)
+
+Player.Chatted:Connect(function(Message)
+	local FinalMessage = string.lower(Message)
+	if FinalMessage == Prefix.."speed" or FinalMessage == Prefix.."walkspeed" then
+		Speed = not Speed	
+	elseif FinalMessage == Prefix.."fly" then
+		FlyEnabled = true
+		Flying = not Flying
+		FlyFunc()
+	elseif FinalMessage == Prefix.."godbullet" or FinalMessage == Prefix.."bulletproof" then
+		BulletproofFunc()    
+	elseif FinalMessage == Prefix.."fog" or FinalMessage == Prefix.."nofog" or FinalMessage == Prefix.."no-fog" then
+		Fog = not Fog
+	elseif FinalMessage == Prefix.."antibag" or FinalMessage == Prefix.."anti-bag" then
+		AntiBag = not AntiBag
+	elseif FinalMessage == Prefix.."antiflash" or FinalMessage == Prefix.."anti-flash" or FinalMessage == Prefix.."antiflashbang" then
+		AntiFlash = not AntiFlash
+	elseif FinalMessage == Prefix.."collision" or FinalMessage == Prefix.."nocollision" or FinalMessage == Prefix.."no-collision" then
+		Collision = not Collision
+	elseif FinalMessage == Prefix.."infinitezoom" or FinalMessage == Prefix.."infzoom" or FinalMessage == Prefix.."infinite-zoom" or FinalMessage == Prefix.."inf-zoom" then
+		InfiniteZoom = not InfiniteZoom
+	elseif FinalMessage == Prefix.."goto" or FinalMessage == Prefix.."tp" or FinalMessage == Prefix.."teleport" or FinalMessage == Prefix.."go-to" then
+		GoToFunc(UsernameTextBox.Text)
+	elseif FinalMessage == Prefix.."AntiSlow" or FinalMessage == Prefix.."noslow" or FinalMessage == Prefix.."anti-slow" or FinalMessage == Prefix.."no-slow" then
+		AntiSlow = not AntiSlow
+	elseif FinalMessage == Prefix.."bigfist" or FinalMessage == Prefix.."big-fist" then
+		BigFist = not BigFist
+		BigFistFunc()
+	elseif FinalMessage == Prefix.."forcereset" or FinalMessage == Prefix.."reset" then
+		ForceResetFunc()
+	elseif FinalMessage == Prefix.."nameesp" or FinalMessage == Prefix.."masknames" or FinalMessage == Prefix.."name-esp" or FinalMessage == Prefix.."mask-names" then
+		NameESPFunc()
+	elseif FinalMessage == Prefix.."find" then
+		FindFunc()
+	elseif FinalMessage == Prefix.."rejoin" then
+		RejoinFunc()
+	elseif FinalMessage == Prefix.."tp-tool" or FinalMessage == Prefix.."teleport-tool" or FinalMessage == Prefix.."tptool" or FinalMessage == Prefix.."teleporttool" then
+		TeleportToolFunc()
+	elseif FinalMessage == Prefix.."auto-stomp" or FinalMessage == Prefix.."autostomp" then
+		AutoStomp = not AutoStomp
+	elseif FinalMessage == Prefix.."safe" or FinalMessage == Prefix.."safety" or FinalMessage == Prefix.."safezone" or FinalMessage == Prefix.."safe-zone" then
+		SafeZoneFunc()
+	elseif FinalMessage == Prefix.."esp" then
+		ESP = not ESP
+	elseif FinalMessage == Prefix.."naked" then
+		NakedFunc()
+	elseif FinalMessage == Prefix.."infjump" or FinalMessage == Prefix.."inf-jump" or FinalMessage == "infinitejump" or FinalMessage == Prefix.."infinite-jump" then
+		InfiniteJump = not InfiniteJump
+	elseif FinalMessage == Prefix.."credits" then
+		MainFrame.Visible = false
+		CreditsFrame.Visible = true
+	end
+end)
+
+Draggable(MainFrame, true)
+
+Player.Idled:Connect(function()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+RunService:BindToRenderStep("Rainbow", 1000, function()
+	local Hue = tick() % 10 / 10
+	local Color = Color3.fromHSV(Hue, 1, 1)
+	DefaultBorderColor = Color
+end)
+
+RunService.Stepped:Connect(function()
+	for i, v in pairs(Gui:GetDescendants()) do
+		if v:IsA("TextLabel") or v:IsA("TextButton") then
+			v.BorderColor3 = DefaultBorderColor
+			v.TextColor3 = DefaultBorderColor
+			v.BackgroundColor3 = DefaultBackgroundColor
+		elseif v:IsA("Frame") or v:IsA("ScrollingFrame") then
+			v.BorderColor3 = DefaultBorderColor
+			v.BackgroundColor3 = DefaultBackgroundColor
+		elseif v:IsA("TextBox") then
+			v.BorderColor3 = DefaultBorderColor
+			v.TextColor3 = DefaultBorderColor
+			v.BackgroundColor3 = DefaultBackgroundColor
+			v.PlaceholderColor3 = DefaultBorderColor
+		end
+	end
+	
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	
+	if not Humanoid or Humanoid.Health < 1 then BigFist = false; Flying = false; Speed = false; end
+	
+	SpeedButton.Text = "Speed = "..tostring(Speed)
+	FlyButton.Text = "Fly(X) = "..tostring(Flying)
+	BigFistButton.Text = "Big Fist = "..tostring(BigFist)
+	FogButton.Text = "Fog = "..tostring(Fog)
+	CollisionButton.Text = "Collision = "..tostring(Collision)
+	InfiniteZoomButton.Text = "Infinite Zoom = "..tostring(InfiniteZoom)
+	AutoStompButton.Text = "Auto Stomp = "..tostring(AutoStomp)
+	AntiSlowButton.Text = "Anti Slow = "..tostring(AntiSlow)   
+	AntiBagButton.Text = "Anti Bag = "..tostring(AntiBag)
+	ESPButton.Text = "ESP = "..tostring(ESP)
+	InfiniteJumpButton.Text = "Infinite Jump = "..tostring(InfiniteJump)
+	AntiFlashButton.Text = "Anti Flash = "..tostring(AntiFlash)
+	ESPFunc()
+	InfiniteJumpFunc()
+	AntiSlowFunc()
+	AntiBagFunc()
+	AntiFlashFunc()
+	CollisionFunc()
+	FogFunc()
+	ZoomFunc()
+	SpeedFunc()
+	AutoStompFunc()
+end)
