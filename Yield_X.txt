@@ -1,0 +1,795 @@
+--[[
+
+	Made by: TheEvilDeveloper ( @DaEvilDev )
+	
+	Created: 2023/07/24
+	
+	Updated: N/A
+	
+	Version: 1.0
+	
+--]]
+
+-- Services
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local Camera = game:GetService("Workspace").CurrentCamera
+
+-- Settings
+local VERSION = "1.0"
+local FRAME_COLOR = Color3.fromRGB(40, 40, 40)
+local FRAME2_COLOR = Color3.fromRGB(40/1.25, 40/1.25, 40/1.25)
+local FRAME_TRANSPARENCY = 0
+local BORDER_COLOR = Color3.fromRGB(10, 10, 10)
+local BORDER_SIZE = 0
+local BUTTON_COLOR = FRAME_COLOR --Color3.fromRGB(25, 25, 25)
+local BUTTON2_COLOR = Color3.fromRGB(40*1.25, 40*1.25, 40*1.25)
+local TEXT_COLOR = Color3.fromRGB(220, 220, 220)
+local TEXT_FONT = Enum.Font.Nunito
+local ROUNDED_EDGES = UDim.new(0, 15)
+local BUTTON_EFFECT = 1.25
+local BUTTON_INTERVAL = 0.085
+local EASING_STYLE = Enum.EasingStyle.Sine
+local EASING_DIRECTION = Enum.EasingDirection.Out
+local FOG_START = Lighting.FogStart
+local FOG_END = Lighting.FogEnd
+local MAX_ZOOM = Player.CameraMaxZoomDistance
+local TOGGLE_BUTTON = Enum.KeyCode.RightControl
+
+-- General
+local GUI = nil
+local GUIParent = nil
+local GUILoaded = false
+local GUILocation = nil
+local GUIDebounce = false
+local HoverSound = nil
+local ClickSound = nil
+local ToggleSound = nil
+local ButtonsDebounce = {}
+
+-- CFrame Fly { https://pastebin.com/FEPkjsm4 }
+local CanFly = false
+local FlyThread = nil
+local FlySpeed = 75
+local FlyKeybind = Enum.KeyCode.Z
+local FlyKeys = {W = false, A = false, S = false, D = false, Q = false, E = false}
+
+-- Features
+local Fly = false
+local ESP = false
+local Fog = true
+local Collision = true
+local InfiniteZoom = false
+local InfiniteJump = false
+
+-- Script Functions
+function FlyThreadFunc()
+	local FlyPos = nil
+
+	while true do
+		local Delta = RunService.Heartbeat:Wait()
+		
+		local RootPart = Player.Character:FindFirstChild("HumanoidRootPart")
+		local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+		
+		if RootPart ~= nil and Humanoid ~= nil then		
+			if Fly ~= false then
+				if FlyPos == nil then
+					FlyPos = RootPart.CFrame
+				end
+				
+				if FlyKeys.W then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.A then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.S then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.D then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.Q then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.E then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+
+				RootPart.Velocity = Vector3.new(0, 0, 0)
+				if Humanoid ~= nil then
+					if Humanoid.Health > 0 then
+						Humanoid.PlatformStand = false
+						Humanoid.Sit = false
+						Humanoid.Jump = false
+						Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+					else
+						Fly = false
+						FlyThread = nil
+						break
+					end
+				end
+
+
+				Camera.Changed:Connect(function(Property)
+					if Property == "CFrame" and Fly ~= false then
+						FlyPos = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+						RootPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+					end
+				end)
+
+				RootPart.CFrame = FlyPos
+			else
+				--FlyPos = RootPart.CFrame
+				FlyThread = nil
+				break
+			end
+		end
+	end
+end
+
+function FlyFunc()
+	if CanFly == false then
+		CanFly = true
+	end
+
+	Fly = not Fly
+	
+	if FlyThread == nil then
+		FlyThread = coroutine.create(FlyThreadFunc)
+	end
+	
+	coroutine.resume(FlyThread)
+end
+
+function FogFunc()
+	if Fog == true then
+		FOG_START = Lighting.FogStart
+		FOG_END = Lighting.FogEnd
+	end
+
+	wait(0.05)
+
+	Fog = not Fog
+
+	wait(0.05)
+
+	if Fog ~= false then
+		Lighting.FogStart = FOG_START
+		Lighting.FogEnd = FOG_END
+	else
+		Lighting.FogStart = 0
+		Lighting.FogEnd = math.huge
+	end
+end
+
+function ESPFunc()
+	ESP = not ESP
+end
+
+function CollisionFunc()
+	Collision = not Collision
+end
+
+function InfiniteJumpFunc()
+	InfiniteJump = not InfiniteJump
+end
+
+function InfiniteZoomFunc()
+	InfiniteZoom = not InfiniteZoom
+
+	wait(0.05)
+
+	if InfiniteZoom ~= false then
+		Player.CameraMaxZoomDistance = math.huge
+	else
+		Player.CameraMaxZoomDistance = MAX_ZOOM
+	end
+end
+
+function RejoinFunc()
+	TeleportService:Teleport(game.PlaceId, Player)
+end
+
+function ForceResetFunc()
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	
+	if Humanoid ~= nil then
+		Fly = false
+		
+		Humanoid.Health = 0
+		
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v:IsA("Part") or v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Tool") then
+				v:Destroy()
+			end
+		end
+	end
+end
+
+function TeleportToolFunc()
+	if Player.Backpack:FindFirstChild("Teleport_Tool") ~= nil then
+		StarterGui:SetCore("SendNotification", {
+			Title = "Yield X "..VERSION;
+			Text = "Tool already exists!"; 
+			Duration = 5;
+		})
+	else
+		local Mouse = Player:GetMouse()
+
+		local Tool = Instance.new("Tool", Player.Backpack)
+		Tool.RequiresHandle = false
+		Tool.ToolTip = "Made by: TheEvilDeveloper"
+		Tool.Name = "Teleport_Tool"
+		Tool.TextureId = "rbxassetid://6723742952"
+		Tool.CanBeDropped = false
+
+		Tool.Activated:Connect(function()
+			Player.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p)
+		end)
+	end
+end
+
+-- GUI Functions
+function Roundify(Object: GuiObject)
+	local UICorner = Instance.new("UICorner", Object)
+	UICorner.Name = Object.Name.."_Roundify"
+	UICorner.CornerRadius = ROUNDED_EDGES
+end
+
+function Draggable(Object: GuiObject, Draggable: boolean)
+	local TweenService = game:GetService("TweenService")
+	local UserInputService = game:GetService("UserInputService")
+
+	local TweenSpeed = 0.15 -- Delay
+	local DragSpeed = 0.25 -- Speed
+	local DragToggle = nil
+	local DragInput = nil
+	local DragStart = nil
+	local DragPosition = nil
+	local StartPosition = nil
+
+	local function UpdateInput(Input)
+		if not Draggable then return end        
+		local Delta = Input.Position - DragStart
+		local Location = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+		TweenService:Create(Object, TweenInfo.new(TweenSpeed), {Position = Location}):Play()
+	end
+
+	Object.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+			DragToggle = true
+			DragStart = Input.Position
+			StartPosition = Object.Position
+			Input.Changed:Connect(function()
+				if Input.UserInputState == Enum.UserInputState.End then
+					DragToggle = false
+				end
+			end)
+		end
+	end)
+
+	Object.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+			DragInput = Input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(Input)
+		if Input == DragInput and DragToggle then
+			UpdateInput(Input)
+		end
+	end)
+end
+
+function CreateButton(Name: string, Text: string, LayoutOrder: number, CustomSize: UDim2, CustomPosition: UDim2, ChildOf: GuiObject, Checkable: string, WhenClicked)
+	local Button = Instance.new("ImageButton", ChildOf)
+	Button.AnchorPoint = Vector2.new(0.5, 0.5)
+	Button.Transparency = 1
+	if CustomPosition ~= nil then
+		Button.Position = CustomPosition
+	end
+	if CustomSize ~= nil then
+		Button.Size = CustomSize
+	else
+		Button.Size = UDim2.new(0.975, 0, 0, 25)
+	end
+	Button.Image = ""
+	Button.LayoutOrder = LayoutOrder
+	Button.Name = Name
+
+	local ButtonContent = Instance.new("TextLabel", Button)
+	ButtonContent.AnchorPoint = Vector2.new(0.5, 0.5)
+	ButtonContent.Size = UDim2.new(1, 0, 1, 0)
+	ButtonContent.Position = UDim2.new(0.5, 0, 0.5, 0)
+	ButtonContent.BackgroundColor3 = BUTTON_COLOR
+	ButtonContent.TextScaled = true
+	ButtonContent.TextColor3 = TEXT_COLOR
+	ButtonContent.Font = TEXT_FONT
+	ButtonContent.TextStrokeTransparency = 0.5
+	ButtonContent.Text = Text
+	ButtonContent.Name = "Button_Content"
+	Roundify(ButtonContent)
+
+	if Checkable ~= nil then
+		local IsChecked = Instance.new("ImageLabel", ButtonContent)
+		IsChecked.AnchorPoint = Vector2.new(0.5, 0.5)
+		IsChecked.Position = UDim2.new(0.915, 0, 0.5, 0)
+		IsChecked.Size = UDim2.new(0.75, 0, 0.75, 0)
+		IsChecked.BackgroundTransparency = 1
+		IsChecked.ZIndex = 5
+		IsChecked.Name = "Status"
+
+		local UIAspectRatio = Instance.new("UIAspectRatioConstraint", IsChecked)
+		UIAspectRatio.Name = "UI_Aspect_Ratio"
+
+		if Checkable == "Checked" then
+			IsChecked.Image = "rbxassetid://14203226653"
+		else
+			IsChecked.Image = "rbxassetid://14203224837"
+		end
+	end
+
+	Button.MouseEnter:Connect(function()
+		if HoverSound ~= nil then
+			HoverSound:Play()
+		end
+
+		local tweenInfo = TweenInfo.new(0.15, EASING_STYLE, EASING_DIRECTION, 0, false, 0)
+
+		local _Tween = TweenService:Create(ButtonContent, tweenInfo, {BackgroundColor3 = BUTTON2_COLOR})
+		_Tween:Play()
+	end)
+
+	Button.MouseLeave:Connect(function()
+		local tweenInfo = TweenInfo.new(0.15, EASING_STYLE, EASING_DIRECTION, 0, false, 0)
+
+		local _Tween = TweenService:Create(ButtonContent, tweenInfo, {BackgroundColor3 = BUTTON_COLOR})
+		_Tween:Play()
+	end)
+
+	Button.Activated:Connect(function()
+		if ButtonsDebounce[Button] == nil then
+			ButtonsDebounce[Button] = true
+
+			if ClickSound ~= nil then
+				ClickSound:Play()
+			end
+
+			local OriginalSize = ButtonContent.Size
+
+			Button.Active = false
+			ButtonContent:TweenSize(UDim2.new(OriginalSize.X.Scale / BUTTON_EFFECT, OriginalSize.X.Offset / BUTTON_EFFECT,  OriginalSize.Y.Scale / BUTTON_EFFECT, OriginalSize.Y.Offset / BUTTON_EFFECT), EASING_DIRECTION, EASING_STYLE, BUTTON_INTERVAL, false, nil)
+
+			wait(0.075)
+
+			ButtonContent:TweenSize(OriginalSize, EASING_DIRECTION, EASING_STYLE, BUTTON_INTERVAL, false, nil)
+
+			wait(0.075)
+
+			Button.Active = true
+			ButtonContent.Size = OriginalSize
+
+			ButtonsDebounce[Button] = nil
+		end
+
+		if WhenClicked ~= nil then
+			WhenClicked()
+		end
+	end)
+end
+
+function GetButton(Button_Name: string)
+	local Button = GUI.Main_Frame.Content_Frame.Buttons_Frame:FindFirstChild(Button_Name)
+
+	if Button ~= nil then
+		return Button
+	else
+		return nil
+	end
+end
+
+function SetButton(Button: GuiObject, Status: boolean)
+	if Status == true then
+		Button.Button_Content.Status.Image = "rbxassetid://14203226653"
+	else
+		Button.Button_Content.Status.Image = "rbxassetid://14203224837"
+	end
+end
+
+function CreateGUI()
+	GUI = Instance.new("ScreenGui")
+	GUI.Name = "TheEvilDeveloper:YX"
+	GUI.IgnoreGuiInset = true
+	GUI.ResetOnSpawn = false
+	GUI.DisplayOrder = 999999
+	GUI.Parent = GUIParent
+
+	HoverSound = Instance.new("Sound", GUI)
+	HoverSound.SoundId = "rbxassetid://7218169592"
+	HoverSound.Name = "Hover_Sound"
+
+	ClickSound = Instance.new("Sound", GUI)
+	ClickSound.SoundId = "rbxassetid://876939830"
+	ClickSound.Name = "Click_Sound"
+
+	ToggleSound = Instance.new("Sound", GUI)
+	ToggleSound.SoundId = "rbxassetid://171269817"
+	ToggleSound.Name = "Toggle_Sound"
+
+
+	local MainFrame = Instance.new("Frame", GUI)
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.Size = UDim2.new(0, 0, 0, 0)
+	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MainFrame.BackgroundColor3 = FRAME_COLOR
+	MainFrame.BackgroundTransparency = FRAME_TRANSPARENCY
+	MainFrame.BorderColor3 = BORDER_COLOR
+	MainFrame.BorderSizePixel = BORDER_SIZE
+	MainFrame.ClipsDescendants = true
+	MainFrame.Name = "Main_Frame"
+	Draggable(MainFrame, true)
+	Roundify(MainFrame)
+
+	local ContentFrame = Instance.new("Frame", MainFrame)
+	ContentFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	ContentFrame.Size = UDim2.new(0.925, 0, 0.925, 0)
+	ContentFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	ContentFrame.BackgroundColor3 = FRAME2_COLOR
+	ContentFrame.BackgroundTransparency = FRAME_TRANSPARENCY
+	ContentFrame.BorderColor3 = BORDER_COLOR
+	ContentFrame.BorderSizePixel = BORDER_SIZE
+	ContentFrame.ClipsDescendants = true
+	ContentFrame.Name = "Content_Frame"
+	Roundify(ContentFrame)
+
+	local MainTitle = Instance.new("TextLabel", ContentFrame)
+	MainTitle.AnchorPoint = Vector2.new(0.5, 0)
+	MainTitle.Position = UDim2.new(0.5, 0, 0, 5)
+	MainTitle.Size = UDim2.new(1, 0, 0.125, 0)
+	MainTitle.BackgroundColor3 = FRAME2_COLOR
+	MainTitle.BackgroundTransparency = 1
+	MainTitle.TextColor3 = TEXT_COLOR
+	MainTitle.TextStrokeTransparency = 0.5
+	MainTitle.TextScaled = true
+	MainTitle.Font = TEXT_FONT
+	MainTitle.Name = "Main_Title"
+	MainTitle.Text = "Yield X"
+
+	local AboutFrame = Instance.new("Frame", MainFrame)
+	AboutFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	AboutFrame.Size = UDim2.new(0.925, 0, 0.925, 0)
+	AboutFrame.Position = UDim2.new(-0.5, 0, 0.5, 0)
+	AboutFrame.BackgroundColor3 = FRAME2_COLOR
+	AboutFrame.BackgroundTransparency = FRAME_TRANSPARENCY
+	AboutFrame.BorderColor3 = BORDER_COLOR
+	AboutFrame.BorderSizePixel = BORDER_SIZE
+	AboutFrame.ClipsDescendants = true
+	AboutFrame.Name = "About_Frame"
+	Roundify(AboutFrame)
+
+	local AboutTitle = Instance.new("TextLabel", AboutFrame)
+	AboutTitle.AnchorPoint = Vector2.new(0.5, 0)
+	AboutTitle.Position = UDim2.new(0.5, 0, 0, 5)
+	AboutTitle.Size = UDim2.new(1, 0, 0.125, 0)
+	AboutTitle.BackgroundColor3 = FRAME2_COLOR
+	AboutTitle.BackgroundTransparency = 1
+	AboutTitle.TextColor3 = TEXT_COLOR
+	AboutTitle.TextStrokeTransparency = 0.5
+	AboutTitle.TextScaled = true
+	AboutTitle.Font = TEXT_FONT
+	AboutTitle.Name = "About_Title"
+	AboutTitle.Text = "About?"
+
+	local Credits = Instance.new("TextLabel", AboutFrame)
+	Credits.AnchorPoint = Vector2.new(0.5, 0.5)
+	Credits.Position = UDim2.new(0.5, 0, 0.415, 0)
+	Credits.Size = UDim2.new(0.85, 0, 0.525, 0)
+	Credits.BackgroundColor3 = FRAME2_COLOR
+	Credits.BackgroundTransparency = 1
+	Credits.TextColor3 = TEXT_COLOR
+	Credits.TextStrokeTransparency = 0.5
+	Credits.TextScaled = true
+	Credits.Font = TEXT_FONT
+	Credits.TextXAlignment = Enum.TextXAlignment.Left
+	Credits.TextYAlignment = Enum.TextYAlignment.Top
+	Credits.Name = "Credits"
+	Credits.Text = "UI Design&Programming:\n\nTheEvilDeveloper\n@DaEvilDev\n\nAssets:\n\nKh4l1l\n@l1l4kh"
+
+	local ButtonsFrame = Instance.new("ScrollingFrame", ContentFrame)
+	ButtonsFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	ButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ButtonsFrame.Size = UDim2.new(0.875, 0, 0.75, 0)
+	ButtonsFrame.Position = UDim2.new(0.5, 0, 0.55, 0)
+	ButtonsFrame.BackgroundTransparency = 1
+	ButtonsFrame.BorderSizePixel = 0
+	ButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	ButtonsFrame.ScrollBarThickness = 0
+	ButtonsFrame.Name = "Buttons_Frame"
+
+	local UILayout = Instance.new("UIListLayout", ButtonsFrame)
+	UILayout.Padding = UDim.new(0, 5)
+	UILayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UILayout.Name = "UI_Layout"	
+
+	-- Toggable Buttons
+	CreateButton("Fly_Button", "Fly", 1, nil, nil, ButtonsFrame, "Unchecked", FlyFunc)
+
+	CreateButton("Fog_Button", "Fog", 2, nil, nil, ButtonsFrame, "Checked", FogFunc)
+
+	CreateButton("ESP_Button", "ESP", 3, nil, nil, ButtonsFrame, "Unchecked", ESPFunc)
+
+	CreateButton("Collision_Button", "Collision", 4, nil, nil, ButtonsFrame, "Checked", CollisionFunc)
+
+	CreateButton("Infinite_Jump_Button", "Infinite Jump", 5, nil, nil, ButtonsFrame, "Unchecked", InfiniteJumpFunc)
+
+	CreateButton("Infinite_Zoom_Button", "Infinite Zoom", 6, nil, nil, ButtonsFrame, "Unchecked", InfiniteZoomFunc)
+
+	-- Click-To-Do Buttons
+	CreateButton("Force_Reset_Button", "Force Reset", 7, nil, nil, ButtonsFrame, nil, ForceResetFunc)
+	
+	CreateButton("Teleport_Tool_Button", "Teleport Tool", 8, nil, nil, ButtonsFrame, nil, TeleportToolFunc)
+
+	CreateButton("Rejoin_Button", "Rejoin Experience", 9, nil, nil, ButtonsFrame, nil, RejoinFunc)
+
+	CreateButton("About_Button", "About?", 999, nil, nil, ButtonsFrame, nil, 
+		function()
+			if AboutFrame.Position ~= UDim2.new(0.5, 0, AboutFrame.Position.Y.Scale, 0) then
+				ContentFrame:TweenPosition(UDim2.new(1.5, 0, ContentFrame.Position.Y.Scale, 0), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+				AboutFrame:TweenPosition(UDim2.new(0.5, 0, AboutFrame.Position.Y.Scale, 0), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+			end
+		end
+	)
+
+	-- About Frame Buttons
+	CreateButton("Copy_Button", "Copy Discord Invite", 1, UDim2.new(0.825, 0, 0, 25), UDim2.new(0.5, 0, 0.765, 0), AboutFrame, nil, 
+		function()
+			if setclipboard ~= nil then
+				setclipboard("https://discord.gg/Wf3VPU7Zez")
+			else
+				StarterGui:SetCore("SendNotification", {
+					Title = "Yield X "..VERSION;
+					Text = "Your exploit does not support that."; 
+					Duration = 5;
+				})
+			end
+		end
+	)
+
+	CreateButton("Back_Button", "Back", 1, UDim2.new(0.825, 0, 0, 25), UDim2.new(0.5, 0, 0.875, 0), AboutFrame, nil, 
+		function()
+			if AboutFrame.Position == UDim2.new(0.5, 0, AboutFrame.Position.Y.Scale, 0) then
+				AboutFrame:TweenPosition(UDim2.new(-0.5, 0, AboutFrame.Position.Y.Scale, 0), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+				ContentFrame:TweenPosition(UDim2.new(0.5, 0, ContentFrame.Position.Y.Scale, 0), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+			end
+		end
+	)
+
+	wait(3)
+
+	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+
+	StarterGui:SetCore("SendNotification", {
+		Title = "Yield X "..VERSION;
+		Text = "Made by: TheEvilDeveloper\n[@DaEvilDev]\n Press <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"; 
+		Duration = 500;
+		Button1 = "OK";
+	})
+end
+
+-- Exploit Main
+function Start()
+	if RunService:IsStudio() ~= false then
+		GUIParent = Player.PlayerGui
+	else
+		GUIParent = game.CoreGui
+	end
+
+	StarterGui:SetCore("SendNotification", {
+		Title = "Yield X "..VERSION;
+		Text = "Loading..."; 
+		Duration = 2.5;
+	})
+
+	if GUIParent:FindFirstChild("TheEvilDeveloper:YX") ~= nil then
+		StarterGui:SetCore("SendNotification", {
+			Title = "Yield X "..VERSION;
+			Text = "Script already executed!"; 
+			Duration = 5;
+		})
+
+		return nil
+	else
+		CreateGUI()
+	end
+end
+
+Start()
+
+UserInputService.InputBegan:Connect(function(Key)
+	if Key.KeyCode == FlyKeybind and CanFly ~= false then
+		FlyFunc()
+	elseif Key.KeyCode == Enum.KeyCode.W then
+		FlyKeys.W = true
+	elseif Key.KeyCode == Enum.KeyCode.A then
+		FlyKeys.A = true
+	elseif Key.KeyCode == Enum.KeyCode.S then
+		FlyKeys.S = true
+	elseif Key.KeyCode == Enum.KeyCode.D then
+		FlyKeys.D = true
+	elseif Key.KeyCode == Enum.KeyCode.E then
+		FlyKeys.E = true
+	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
+		FlyKeys.Q = true
+	elseif Key.KeyCode == TOGGLE_BUTTON then
+		if GUI ~= nil and GUIDebounce == false then
+			if ToggleSound ~= nil then
+				ToggleSound:Play()
+			end
+
+			GUIDebounce = true
+
+			if GUI.Main_Frame.Position == UDim2.new(GUI.Main_Frame.Position.X.Scale, 0, -1, 0) then
+				GUI.Main_Frame:TweenPosition(GUILocation, EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+			else
+				GUILocation = GUI.Main_Frame.Position
+				wait(0.05)
+				GUI.Main_Frame:TweenPosition(UDim2.new(GUI.Main_Frame.Position.X.Scale, 0, -1, 0), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+			end
+
+			wait(0.5)
+
+			GUIDebounce = false
+		end
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(Key)
+	if Key.KeyCode == Enum.KeyCode.W then
+		FlyKeys.W = false
+	elseif Key.KeyCode == Enum.KeyCode.A then
+		FlyKeys.A = false
+	elseif Key.KeyCode == Enum.KeyCode.S then
+		FlyKeys.S = false
+	elseif Key.KeyCode == Enum.KeyCode.D then
+		FlyKeys.D = false
+	elseif Key.KeyCode == Enum.KeyCode.E then
+		FlyKeys.E = false
+	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
+		FlyKeys.Q = false
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if GUI ~= nil then
+		local Fly_Button = GetButton("Fly_Button")
+
+		if Fly_Button then
+			SetButton(Fly_Button, Fly)
+			if CanFly == true then
+				if Fly_Button.Button_Content.Text ~= "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">" then
+					Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
+				end
+			end
+		end
+
+		local Fog_Button = GetButton("Fog_Button")
+
+		if Fog_Button then
+			SetButton(Fog_Button, Fog)
+		end
+
+		local ESP_Button = GetButton("ESP_Button")
+
+		if ESP_Button then
+			SetButton(ESP_Button, ESP)
+		end
+
+		local CollisionButton = GetButton("Collision_Button")
+
+		if CollisionButton then
+			SetButton(CollisionButton, Collision)
+		end
+
+		local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
+
+		if Infinite_Jump_Button then
+			SetButton(Infinite_Jump_Button, InfiniteJump)
+		end
+
+		local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
+
+		if Infinite_Zoom_Button then
+			SetButton(Infinite_Zoom_Button, InfiniteZoom)
+		end
+	end
+
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	
+	if InfiniteJump ~= false then
+		local function Action(Object, Function) if Object ~= nil and InfiniteJump then Function(Object) end end
+		UserInputService.InputBegan:Connect(function(Input)
+			if Input.KeyCode == Enum.KeyCode.Space then
+				Action(Humanoid, function(self)
+					if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+						Action(self.Parent.HumanoidRootPart, function(self)
+							self.Velocity = Vector3.new(0, 50, 0);
+						end)
+					end
+				end)
+			end
+		end)
+	end
+
+	if ESP ~= false then
+		for i, v in pairs(Workspace:GetDescendants()) do
+			if v:IsA("Humanoid") then
+				local _Player = Players:GetPlayerFromCharacter(v.Parent)
+				if _Player and _Player ~= Player then
+					if _Player.Character.HumanoidRootPart:FindFirstChild("TheEvilDeveloper:ESP") == nil then
+						local ESPGui = Instance.new("BillboardGui", v.RootPart)
+						ESPGui.AlwaysOnTop = true
+						ESPGui.Adornee = v.RootPart
+						ESPGui.Size = UDim2.new(6.5, 0, 6.5, 0)
+						ESPGui.Name = "TheEvilDeveloper:ESP"
+						local ESPImage = Instance.new("ImageLabel", ESPGui)
+						ESPImage.Size = UDim2.new(1, 0, 1, 0)
+						ESPImage.Image = "rbxassetid://8257933359" -- Other recommanded id: 6328449823
+						ESPImage.BackgroundTransparency = 1
+						ESPImage.ImageColor3 = BORDER_COLOR
+						ESPImage.Name = "TheEvilDeveloper:ESP_Image"
+						local ESPText = Instance.new("TextLabel", ESPGui)
+						ESPText.BackgroundTransparency = 1
+						ESPText.AnchorPoint = Vector2.new(0.5, 0.5)
+						ESPText.Position = UDim2.new(0.5, 0, 0.5, 0)
+						ESPText.Size = UDim2.new(0.75, 0, 1, 0)
+						ESPText.Font = TEXT_FONT
+						ESPText.TextColor3 = BORDER_COLOR
+						ESPText.TextScaled = true
+						ESPText.FontFace.Weight = Enum.FontWeight.ExtraBold
+						ESPText.Text = v.Parent.Name
+						ESPText.Name = "TheEvilDeveloper:ESP_Text"
+					end
+				end
+			end
+		end
+	else
+		for i, v in pairs(Workspace:GetDescendants()) do
+			if v.Name == "TheEvilDeveloper:ESP" then
+				v:Destroy()
+			end
+		end
+	end
+
+	if Collision ~= false then
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = true
+				end
+			end
+		end
+	else
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end
+end)
+
