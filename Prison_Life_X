@@ -458,9 +458,32 @@ function JumpPowerFunc()
 end
 
 function GetAllWeaponsFunc()
-	for i, v in pairs(workspace.Prison_ITEMS.giver:GetChildren()) do
-		workspace.Remote.ItemHandler:InvokeServer(v.ITEMPICKUP)
-	end
+    local args = {
+        [1] = workspace.Prison_ITEMS.giver:FindFirstChild("Remington 870").ITEMPICKUP
+	[2] = workspace.Prison_ITEMS.giver.M9.ITEMPICKUP
+	[3] = workspace.Prison_ITEMS.giver:FindFirstChild("AK-47").ITEMPICKUP
+	[4] = workspace.Prison_ITEMS.giver.M4A1.ITEMPICKUP
+    }
+    
+    workspace.Remote.ItemHandler:InvokeServer(unpack(args))
+
+    local module = nil
+    if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(v) then
+        module = require(game:GetService("Players").LocalPlayer.Backpack[v].GunStates)
+    elseif game:GetService("Players").LocalPlayer.Character:FindFirstChild(v) then
+        module = require(game:GetService("Players").LocalPlayer.Character[v].GunStates)
+    end
+    if module ~= nil then
+        module["MaxAmmo"] = math.huge
+        module["CurrentAmmo"] = math.huge
+        module["StoredAmmo"] = math.huge
+        module["FireRate"] = 0.000001
+        module["Spread"] = 0
+        module["Range"] = math.huge
+        module["Bullets"] = 10
+        module["ReloadTime"] = 0.000001
+        module["AutoFire"] = true
+    end
 end
 
 function Draggable(Object: GuiObject, Draggable: boolean)
