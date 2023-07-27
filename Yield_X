@@ -57,6 +57,9 @@ local ButtonsDebounce = {}
 -- CFrame Fly { https://pastebin.com/FEPkjsm4 }
 local CanFly = false
 local FlyThread = nil
+local FlyPos = Instance.new("CFrameValue", Lighting)
+FlyPos.Name = "TheEvilDeveloper:Fly"
+FlyPos = FlyPos.Value
 local FlySpeed = 75
 local FlyKeybind = Enum.KeyCode.Z
 local FlyKeys = {W = false, A = false, S = false, D = false, Q = false, E = false}
@@ -69,77 +72,12 @@ local Collision = true
 local InfiniteZoom = false
 local InfiniteJump = false
 
--- Script Functions
-function FlyThreadFunc()
-	local FlyPos = nil
+local Character = Player.Character or Player.CharacterAdded:Wait()
 
-	while true do
-		local Delta = RunService.Heartbeat:Wait()
-		
-		local RootPart = Player.Character:FindFirstChild("HumanoidRootPart")
-		local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-		
-		if RootPart ~= nil and Humanoid ~= nil then		
-			if Fly ~= false then
-				if FlyPos == nil then
-					FlyPos = RootPart.CFrame
-				end
-				
-				if FlyKeys.W then
-					FlyPos = RootPart.CFrame + (Camera.CFrame.LookVector * (Delta * FlySpeed))
-				end
+--repeat 
 
-				if FlyKeys.A then
-					FlyPos = RootPart.CFrame + (-Camera.CFrame.RightVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.S then
-					FlyPos = RootPart.CFrame + (-Camera.CFrame.LookVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.D then
-					FlyPos = RootPart.CFrame + (Camera.CFrame.RightVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.Q then
-					FlyPos = RootPart.CFrame + (Camera.CFrame.UpVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.E then
-					FlyPos = RootPart.CFrame + (-Camera.CFrame.UpVector * (Delta * FlySpeed))
-				end
-
-				RootPart.Velocity = Vector3.new(0, 0, 0)
-				if Humanoid ~= nil then
-					if Humanoid.Health > 0 then
-						Humanoid.PlatformStand = false
-						Humanoid.Sit = false
-						Humanoid.Jump = false
-						Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
-					else
-						Fly = false
-						FlyThread = nil
-						break
-					end
-				end
-
-
-				Camera.Changed:Connect(function(Property)
-					if Property == "CFrame" and Fly ~= false then
-						FlyPos = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
-						RootPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
-					end
-				end)
-
-				RootPart.CFrame = FlyPos
-			else
-				--FlyPos = RootPart.CFrame
-				FlyThread = nil
-				break
-			end
-		end
-	end
-end
+local RootPart = Character:FindFirstChild("HumanoidRootPart")
+local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 
 function FlyFunc()
 	if CanFly == false then
@@ -147,12 +85,6 @@ function FlyFunc()
 	end
 
 	Fly = not Fly
-	
-	if FlyThread == nil then
-		FlyThread = coroutine.create(FlyThreadFunc)
-	end
-	
-	coroutine.resume(FlyThread)
 end
 
 function FogFunc()
@@ -244,13 +176,13 @@ function TeleportToolFunc()
 end
 
 -- GUI Functions
-function Roundify(Object: GuiObject)
+local function Roundify(Object: GuiObject)
 	local UICorner = Instance.new("UICorner", Object)
 	UICorner.Name = Object.Name.."_Roundify"
 	UICorner.CornerRadius = ROUNDED_EDGES
 end
 
-function Draggable(Object: GuiObject, Draggable: boolean)
+local function Draggable(Object: GuiObject, Draggable: boolean)
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 
@@ -295,7 +227,7 @@ function Draggable(Object: GuiObject, Draggable: boolean)
 	end)
 end
 
-function CreateButton(Name: string, Text: string, LayoutOrder: number, CustomSize: UDim2, CustomPosition: UDim2, ChildOf: GuiObject, Checkable: string, WhenClicked)
+local function CreateButton(Name: string, Text: string, LayoutOrder: number, CustomSize: UDim2, CustomPosition: UDim2, ChildOf: GuiObject, Checkable: string, WhenClicked)
 	local Button = Instance.new("ImageButton", ChildOf)
 	Button.AnchorPoint = Vector2.new(0.5, 0.5)
 	Button.Transparency = 1
@@ -392,7 +324,7 @@ function CreateButton(Name: string, Text: string, LayoutOrder: number, CustomSiz
 	end)
 end
 
-function GetButton(Button_Name: string)
+local function GetButton(Button_Name: string)
 	local Button = GUI.Main_Frame.Content_Frame.Buttons_Frame:FindFirstChild(Button_Name)
 
 	if Button ~= nil then
@@ -402,7 +334,7 @@ function GetButton(Button_Name: string)
 	end
 end
 
-function SetButton(Button: GuiObject, Status: boolean)
+local function SetButton(Button: GuiObject, Status: boolean)
 	if Status == true then
 		Button.Button_Content.Status.Image = "rbxassetid://14203226653"
 	else
@@ -410,11 +342,27 @@ function SetButton(Button: GuiObject, Status: boolean)
 	end
 end
 
-function CreateGUI()
+-- Exploit Main
+
+if RunService:IsStudio() ~= false then
+	GUIParent = Player.PlayerGui
+else
+	GUIParent = game:GetService("CoreGui")
+end
+
+if GUIParent:FindFirstChild("TheEvilDeveloper:YX") ~= nil then
+	StarterGui:SetCore("SendNotification", {
+		Title = "Yield X "..VERSION;
+		Text = "Script already executed!"; 
+		Duration = 5;
+	})
+
+	return nil
+else
 	GUI = Instance.new("ScreenGui")
 	GUI.Name = "TheEvilDeveloper:YX"
 	GUI.IgnoreGuiInset = true
-	GUI.ResetOnSpawn = false
+	--GUI.ResetOnSpawn = false
 	GUI.DisplayOrder = 999999
 	GUI.Parent = GUIParent
 
@@ -540,7 +488,7 @@ function CreateGUI()
 
 	-- Click-To-Do Buttons
 	CreateButton("Force_Reset_Button", "Force Reset", 7, nil, nil, ButtonsFrame, nil, ForceResetFunc)
-	
+
 	CreateButton("Teleport_Tool_Button", "Teleport Tool", 8, nil, nil, ButtonsFrame, nil, TeleportToolFunc)
 
 	CreateButton("Rejoin_Button", "Rejoin Experience", 9, nil, nil, ButtonsFrame, nil, RejoinFunc)
@@ -577,10 +525,16 @@ function CreateGUI()
 			end
 		end
 	)
+	
+	StarterGui:SetCore("SendNotification", {
+		Title = "Yield X "..VERSION;
+		Text = "Loading..."; 
+		Duration = 2;
+	})
 
 	wait(3)
 
-	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.175, false, nil)
+	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
 
 	StarterGui:SetCore("SendNotification", {
 		Title = "Yield X "..VERSION;
@@ -588,36 +542,9 @@ function CreateGUI()
 		Duration = 500;
 		Button1 = "OK";
 	})
+	
+	GUILoaded = true
 end
-
--- Exploit Main
-function Start()
-	if RunService:IsStudio() ~= false then
-		GUIParent = Player.PlayerGui
-	else
-		GUIParent = game.CoreGui
-	end
-
-	StarterGui:SetCore("SendNotification", {
-		Title = "Yield X "..VERSION;
-		Text = "Loading..."; 
-		Duration = 2.5;
-	})
-
-	if GUIParent:FindFirstChild("TheEvilDeveloper:YX") ~= nil then
-		StarterGui:SetCore("SendNotification", {
-			Title = "Yield X "..VERSION;
-			Text = "Script already executed!"; 
-			Duration = 5;
-		})
-
-		return nil
-	else
-		CreateGUI()
-	end
-end
-
-Start()
 
 UserInputService.InputBegan:Connect(function(Key)
 	if Key.KeyCode == FlyKeybind and CanFly ~= false then
@@ -673,123 +600,189 @@ UserInputService.InputEnded:Connect(function(Key)
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
-	if GUI ~= nil then
-		local Fly_Button = GetButton("Fly_Button")
-
-		if Fly_Button then
-			SetButton(Fly_Button, Fly)
-			if CanFly == true then
-				if Fly_Button.Button_Content.Text ~= "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">" then
-					Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
-				end
-			end
+RunService.Heartbeat:Connect(function()
+	if GUILoaded ~= false then
+		if GUI == nil then
+			local GUI = GUIParent:FindFirstChild("TheEvilDeveloper:YX")
 		end
+		if GUI ~= nil then
+			local Fly_Button = GetButton("Fly_Button")
 
-		local Fog_Button = GetButton("Fog_Button")
-
-		if Fog_Button then
-			SetButton(Fog_Button, Fog)
-		end
-
-		local ESP_Button = GetButton("ESP_Button")
-
-		if ESP_Button then
-			SetButton(ESP_Button, ESP)
-		end
-
-		local CollisionButton = GetButton("Collision_Button")
-
-		if CollisionButton then
-			SetButton(CollisionButton, Collision)
-		end
-
-		local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
-
-		if Infinite_Jump_Button then
-			SetButton(Infinite_Jump_Button, InfiniteJump)
-		end
-
-		local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
-
-		if Infinite_Zoom_Button then
-			SetButton(Infinite_Zoom_Button, InfiniteZoom)
-		end
-	end
-
-	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-	
-	if InfiniteJump ~= false then
-		local function Action(Object, Function) if Object ~= nil and InfiniteJump then Function(Object) end end
-		UserInputService.InputBegan:Connect(function(Input)
-			if Input.KeyCode == Enum.KeyCode.Space then
-				Action(Humanoid, function(self)
-					if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
-						Action(self.Parent.HumanoidRootPart, function(self)
-							self.Velocity = Vector3.new(0, 50, 0);
-						end)
-					end
-				end)
-			end
-		end)
-	end
-
-	if ESP ~= false then
-		for i, v in pairs(Workspace:GetDescendants()) do
-			if v:IsA("Humanoid") then
-				local _Player = Players:GetPlayerFromCharacter(v.Parent)
-				if _Player and _Player ~= Player then
-					if _Player.Character.HumanoidRootPart:FindFirstChild("TheEvilDeveloper:ESP") == nil then
-						local ESPGui = Instance.new("BillboardGui", v.RootPart)
-						ESPGui.AlwaysOnTop = true
-						ESPGui.Adornee = v.RootPart
-						ESPGui.Size = UDim2.new(6.5, 0, 6.5, 0)
-						ESPGui.Name = "TheEvilDeveloper:ESP"
-						local ESPImage = Instance.new("ImageLabel", ESPGui)
-						ESPImage.Size = UDim2.new(1, 0, 1, 0)
-						ESPImage.Image = "rbxassetid://8257933359" -- Other recommanded id: 6328449823
-						ESPImage.BackgroundTransparency = 1
-						ESPImage.ImageColor3 = BORDER_COLOR
-						ESPImage.Name = "TheEvilDeveloper:ESP_Image"
-						local ESPText = Instance.new("TextLabel", ESPGui)
-						ESPText.BackgroundTransparency = 1
-						ESPText.AnchorPoint = Vector2.new(0.5, 0.5)
-						ESPText.Position = UDim2.new(0.5, 0, 0.5, 0)
-						ESPText.Size = UDim2.new(0.75, 0, 1, 0)
-						ESPText.Font = TEXT_FONT
-						ESPText.TextColor3 = BORDER_COLOR
-						ESPText.TextScaled = true
-						ESPText.FontFace.Weight = Enum.FontWeight.ExtraBold
-						ESPText.Text = v.Parent.Name
-						ESPText.Name = "TheEvilDeveloper:ESP_Text"
+			if Fly_Button then
+				SetButton(Fly_Button, Fly)
+				if CanFly == true then
+					if Fly_Button.Button_Content.Text ~= "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">" then
+						Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
 					end
 				end
 			end
-		end
-	else
-		for i, v in pairs(Workspace:GetDescendants()) do
-			if v.Name == "TheEvilDeveloper:ESP" then
-				v:Destroy()
-			end
-		end
-	end
 
-	if Collision ~= false then
-		for i, v in pairs(Player.Character:GetDescendants()) do
-			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
-				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
-					v.CanCollide = true
+			local Fog_Button = GetButton("Fog_Button")
+
+			if Fog_Button then
+				SetButton(Fog_Button, Fog)
+			end
+
+			local ESP_Button = GetButton("ESP_Button")
+
+			if ESP_Button then
+				SetButton(ESP_Button, ESP)
+			end
+
+			local CollisionButton = GetButton("Collision_Button")
+
+			if CollisionButton then
+				SetButton(CollisionButton, Collision)
+			end
+
+			local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
+
+			if Infinite_Jump_Button then
+				SetButton(Infinite_Jump_Button, InfiniteJump)
+			end
+
+			local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
+
+			if Infinite_Zoom_Button then
+				SetButton(Infinite_Zoom_Button, InfiniteZoom)
+			end
+		
+		end
+		
+		if Character ~= nil then
+			Humanoid = Character:FindFirstChildOfClass("Humanoid")
+			RootPart = Character:FindFirstChild("HumanoidRootPart")
+		end
+		
+		if Humanoid == nil or RootPart == nil or Humanoid.Health <= 0 then
+			Fly = false
+			InfiniteJump = false
+		end
+		
+		if Fly ~= false then
+			RootPart.Velocity = Vector3.new(0, 0, 0)
+
+			if Humanoid.Health > 0 then
+				Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+			end
+
+			Camera.Changed:Connect(function(Property)
+				if Property == "CFrame" and Fly ~= false then
+					FlyPos = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+					RootPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+				end
+			end)
+
+			RootPart.CFrame = FlyPos
+		else
+			FlyPos = RootPart.CFrame
+		end	
+		
+		if InfiniteJump ~= false then
+			local function Action(Object, Function) if Object ~= nil and InfiniteJump then Function(Object) end end
+			UserInputService.InputBegan:Connect(function(Input)
+				if Input.KeyCode == Enum.KeyCode.Space then
+					Action(Humanoid, function(self)
+						if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+							Action(self.Parent.HumanoidRootPart, function(self)
+								self.Velocity = Vector3.new(0, 50, 0);
+							end)
+						end
+					end)
+				end
+			end)
+		end
+
+		if ESP ~= false then
+			for i, v in pairs(Workspace:GetDescendants()) do
+				if v:IsA("Humanoid") then
+					local _Player = Players:GetPlayerFromCharacter(v.Parent)
+					if _Player and _Player ~= Player then
+						if _Player.Character.HumanoidRootPart:FindFirstChild("TheEvilDeveloper:ESP") == nil then
+							local ESPGui = Instance.new("BillboardGui", v.RootPart)
+							ESPGui.AlwaysOnTop = true
+							ESPGui.Adornee = v.RootPart
+							ESPGui.Size = UDim2.new(6.5, 0, 6.5, 0)
+							ESPGui.Name = "TheEvilDeveloper:ESP"
+							local ESPImage = Instance.new("ImageLabel", ESPGui)
+							ESPImage.Size = UDim2.new(1, 0, 1, 0)
+							ESPImage.Image = "rbxassetid://8257933359" -- Other recommanded id: 6328449823
+							ESPImage.BackgroundTransparency = 1
+							ESPImage.ImageColor3 = BORDER_COLOR
+							ESPImage.Name = "TheEvilDeveloper:ESP_Image"
+							local ESPText = Instance.new("TextLabel", ESPGui)
+							ESPText.BackgroundTransparency = 1
+							ESPText.AnchorPoint = Vector2.new(0.5, 0.5)
+							ESPText.Position = UDim2.new(0.5, 0, 0.5, 0)
+							ESPText.Size = UDim2.new(0.75, 0, 1, 0)
+							ESPText.Font = TEXT_FONT
+							ESPText.TextColor3 = BORDER_COLOR
+							ESPText.TextScaled = true
+							ESPText.FontFace.Weight = Enum.FontWeight.ExtraBold
+							ESPText.Text = v.Parent.Name
+							ESPText.Name = "TheEvilDeveloper:ESP_Text"
+						end
+					end
+				end
+			end
+		else
+			for i, v in pairs(Workspace:GetDescendants()) do
+				if v.Name == "TheEvilDeveloper:ESP" then
+					v:Destroy()
 				end
 			end
 		end
-	else
-		for i, v in pairs(Player.Character:GetDescendants()) do
-			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
-				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
-					v.CanCollide = false
+
+		if Collision ~= false then
+			for i, v in pairs(Player.Character:GetDescendants()) do
+				if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+					if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+						v.CanCollide = true
+					end
+				end
+			end
+		else
+			for i, v in pairs(Player.Character:GetDescendants()) do
+				if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+					if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+						v.CanCollide = false
+					end
 				end
 			end
 		end
 	end
 end)
 
+while true do
+	local Delta = RunService.RenderStepped:Wait()
+	
+	if GUILoaded ~= false then
+		if RootPart ~= nil and Humanoid ~= nil then		
+			if Fly ~= false then
+				if FlyKeys.W then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.A then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.S then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.D then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.Q then
+					FlyPos = RootPart.CFrame + (Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.E then
+					FlyPos = RootPart.CFrame + (-Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+			end
+		end
+	end
+end
