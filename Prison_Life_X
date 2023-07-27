@@ -1,0 +1,621 @@
+--[[
+
+	Made by:  TheEvilDeveloper
+
+	Created: 2021/02/05
+
+	Updated: 2023/07/27
+
+	Version: 1.0
+
+]]
+
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local CurrentCamera = workspace.CurrentCamera
+
+local Version = "1.0"
+local Fly = false
+local Speed = false
+local JumpPower = false
+local Collision = true
+local KillAura = false
+local InfiniteJump = false
+local Draggable = true
+local GUI_Parent = nil
+local GUI_Position = nil
+local FlySpeed = 0
+local Direction = {F = 0, B = 0, L = 0, R = 0}
+local Keys = {W = false, A = false, S = false, D = false, Space = false}
+local Whitlisted = {
+	"TheEvilDeveloper";
+	"yamenO9";
+	"HadiV22660";
+	"szar20042";
+	"jvxxx989";
+}
+
+if not RunService:IsStudio() then
+	GUI_Parent = CoreGui
+	if CoreGui:FindFirstChild("TheEvilDeveloper: Prison Life X") then
+		StarterGui:SetCore("SendNotification", {
+			Title = "Prison Life X "..Version;
+			Text = "Gui already exists."; 
+			Duration = 2;
+		})
+	end
+else
+	GUI_Parent = Player.PlayerGui
+end
+
+repeat wait() until GUI_Parent ~= nil and game:IsLoaded()
+
+StarterGui:SetCore("SendNotification", {
+	Title = "Prison Life X "..Version;
+	Text = "Loaded \n Show/Hide: 'RightCtrl'\n Made by: TheEvilDeveloper"; 
+	Duration = 25;
+	Button1 = "Okay";
+})
+
+local GUI = Instance.new("ScreenGui", GUI_Parent)
+local Main = Instance.new("Frame", GUI)
+local Content = Instance.new("Frame", Main)
+local Shadow = Instance.new("ImageLabel", Content)
+local About = Instance.new("Frame", Main)
+local Creator = Instance.new("TextLabel", About)
+local CopyButton = Instance.new("TextButton", About)
+local CloseButton = Instance.new("TextButton", About)
+local ShowHideHint = Instance.new("TextLabel", About)
+local VersionLabel = Instance.new("TextLabel", About)
+local Title = Instance.new("TextLabel", Content)
+local UsernameBox = Instance.new("TextBox", Content)
+local GoToButton = Instance.new("TextButton", Content)
+local KillAuraButton = Instance.new("TextButton", Content)
+local FlyButton = Instance.new("TextButton", Content)
+local CollisionButton = Instance.new("TextButton", Content)
+local InfiniteJumpButton = Instance.new("TextButton", Content)
+local SpeedButton = Instance.new("TextButton", Content)
+local JumpPowerButton = Instance.new("TextButton", Content)
+local GetAllWeaponsButton = Instance.new("TextButton", Content)
+local AboutButton = Instance.new("TextButton", Content)
+
+GUI.Name = "TheEvilDeveloper: Prison Life X"
+
+Main.AnchorPoint = Vector2.new(0.5,0.5)
+Main.Name = "Main"
+Main.Position = UDim2.new(0.5,0,0.5,0)
+Main.Size = UDim2.new(0,300,0,300)
+Main.BorderSizePixel = 0
+Main.BackgroundColor3 = Color3.new(5/51,5/51,5/51)
+Main.ClipsDescendants = true
+
+Content.AnchorPoint = Vector2.new(0.5,0.5)
+Content.Name = "Content"
+Content.Position = UDim2.new(0.5,0,0.5,0)
+Content.Size = UDim2.new(1,0,1,0)
+Content.BorderSizePixel = 0
+Content.BackgroundColor3 = Color3.new(5/51,5/51,5/51)
+Content.ClipsDescendants = true
+
+Shadow.AnchorPoint = Vector2.new(0.5,0.5)
+Shadow.Image = "rbxassetid://4224835054"
+Shadow.Name = "Shadow"
+Shadow.Position = UDim2.new(0.5,0,0.5,0)
+Shadow.BackgroundTransparency = 1
+Shadow.Size = UDim2.new(1,0,1,0)
+Shadow.BackgroundColor3 = Color3.new(1,1,1)
+
+About.Name = "About"
+About.AnchorPoint = Vector2.new(0.5, 0.5)
+About.Position = UDim2.new(-0.5,0,0.5,0)
+About.Size = UDim2.new(1,0,1,0)
+About.ZIndex = 2
+About.BorderSizePixel = 0
+About.BackgroundColor3 = Color3.new(5/51,5/51,5/51)
+
+Creator.AnchorPoint = Vector2.new(0.5, 0.5)
+Creator.FontSize = Enum.FontSize.Size14
+Creator.TextColor3 = Color3.new(1,1,1)
+Creator.Text = "About?\n\nProgramming&Design:\n\nTheEvilDeveloper\n@DaEvilDev"
+Creator.BackgroundTransparency = 1
+Creator.Size = UDim2.new(0.75,0,0.175,0)
+Creator.Font = Enum.Font.SourceSans
+Creator.Name = "Creator"
+Creator.Position = UDim2.new(0.5,0,0.175,0)
+Creator.TextSize = 14
+Creator.BackgroundColor3 = Color3.new(1,1,1)
+Creator.ZIndex = 2
+
+CopyButton.FontSize = Enum.FontSize.Size14
+CopyButton.TextColor3 = Color3.new(1,1,1)
+CopyButton.BorderColor3 = Color3.new(2/17,2/17,2/17)
+CopyButton.Text = "Copy Discord Invite"
+CopyButton.AnchorPoint = Vector2.new(0.5,0.5)
+CopyButton.Font = Enum.Font.SourceSans
+CopyButton.Name = "CopyButton"
+CopyButton.Position = UDim2.new(0.5,0,0.5,0)
+CopyButton.Size = UDim2.new(0,150,0,50)
+CopyButton.TextSize = 14
+CopyButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51)
+CopyButton.BorderMode = "Inset"
+CopyButton.ZIndex = 2
+
+CloseButton.FontSize = Enum.FontSize.Size14 
+CloseButton.TextColor3 = Color3.new(1,1,1) 
+CloseButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+CloseButton.Text = "Back" 
+CloseButton.AnchorPoint = Vector2.new(0.5,0.5) 
+CloseButton.Font = Enum.Font.SourceSans 
+CloseButton.Name = "CloseButton" 
+CloseButton.Position = UDim2.new(0.5,0,0.7,0) 
+CloseButton.Size = UDim2.new(0,150,0,50) 
+CloseButton.TextSize = 14 
+CloseButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+CloseButton.BorderMode = "Inset"
+CloseButton.ZIndex = 2
+
+ShowHideHint.FontSize = Enum.FontSize.Size14 
+ShowHideHint.TextColor3 = Color3.new(1,1,1) 
+ShowHideHint.Text = "Toggle GUI: 'RightControl'" 
+ShowHideHint.BackgroundTransparency = 1 
+ShowHideHint.Size = UDim2.new(0,300,0,24) 
+ShowHideHint.TextWrapped = true 
+ShowHideHint.Font = Enum.Font.SourceSans 
+ShowHideHint.Name = "ShowHide" 
+ShowHideHint.Position = UDim2.new(0,0,0.825,0) 
+ShowHideHint.TextSize = 14 
+ShowHideHint.BackgroundColor3 = Color3.new(1,1,1) 
+ShowHideHint.ZIndex = 2
+
+VersionLabel.FontSize = Enum.FontSize.Size14 
+VersionLabel.TextColor3 = Color3.new(1,1,1) 
+VersionLabel.Text = "Version: "..Version 
+VersionLabel.BackgroundTransparency = 1 
+VersionLabel.Size = UDim2.new(0,300,0,24) 
+VersionLabel.Font = Enum.Font.SourceSans 
+VersionLabel.Name = "Version" 
+VersionLabel.Position = UDim2.new(0,0,0.915,0) 
+VersionLabel.TextSize = 14 
+VersionLabel.BackgroundColor3 = Color3.new(1,1,1) 
+VersionLabel.ZIndex = 2
+
+Title.FontSize = Enum.FontSize.Size14 
+Title.TextColor3 = Color3.new(1,1,1) 
+Title.Text = "Prison Life X" 
+Title.BackgroundTransparency = 1 
+Title.TextWrapped = true 
+Title.Font = Enum.Font.SourceSans 
+Title.Name = "Title" 
+Title.Size = UDim2.new(0,300,0,50) 
+Title.TextSize = 14 
+Title.BackgroundColor3 = Color3.new(1,1,1) 
+Title.TextScaled = true 
+Title.TextWrap = true 
+
+UsernameBox.FontSize = Enum.FontSize.Size14 
+UsernameBox.TextColor3 = Color3.new(1,1,1) 
+UsernameBox.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+UsernameBox.Text = "" 
+UsernameBox.Font = Enum.Font.SourceSans 
+UsernameBox.Name = "UsernameBox" 
+UsernameBox.Position = UDim2.new(0.5,0,0.16666665673256,0) 
+UsernameBox.Size = UDim2.new(0,150,0,50) 
+UsernameBox.PlaceholderText = "Username" 
+UsernameBox.TextSize = 14 
+UsernameBox.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+UsernameBox.BorderMode = "Inset"
+
+GoToButton.FontSize = Enum.FontSize.Size14 
+GoToButton.TextColor3 = Color3.new(1,1,1) 
+GoToButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+GoToButton.Text = "Go to" 
+GoToButton.Font = Enum.Font.SourceSans 
+GoToButton.Name = "GoToButton" 
+GoToButton.Position = UDim2.new(0,0,0.16666665673256,0) 
+GoToButton.Size = UDim2.new(0,150,0,50) 
+GoToButton.TextSize = 14 
+GoToButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+GoToButton.BorderMode = "Inset"
+
+KillAuraButton.FontSize = Enum.FontSize.Size14 
+KillAuraButton.TextColor3 = Color3.new(1,1,1) 
+KillAuraButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+KillAuraButton.Text = "Kill Aura (false)" 
+KillAuraButton.Font = Enum.Font.SourceSans 
+KillAuraButton.Name = "KillAuraButton" 
+KillAuraButton.Position = UDim2.new(0,0,0.66666668653488,0) 
+KillAuraButton.Size = UDim2.new(0,150,0,50) 
+KillAuraButton.TextSize = 14 
+KillAuraButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+KillAuraButton.BorderMode = "Inset"
+
+FlyButton.FontSize = Enum.FontSize.Size14 
+FlyButton.TextColor3 = Color3.new(1,1,1) 
+FlyButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+FlyButton.Text = "Fly [X] (false)" 
+FlyButton.Font = Enum.Font.SourceSans 
+FlyButton.Name = "FlyButton" 
+FlyButton.Position = UDim2.new(0.5,0,0.33333331346512,0) 
+FlyButton.Size = UDim2.new(0,150,0,50) 
+FlyButton.TextSize = 14 
+FlyButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+FlyButton.BorderMode = "Inset"
+
+CollisionButton.FontSize = Enum.FontSize.Size14 
+CollisionButton.TextColor3 = Color3.new(1,1,1) 
+CollisionButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+CollisionButton.Text = "Collision (true)" 
+CollisionButton.Font = Enum.Font.SourceSans 
+CollisionButton.Name = "CollisionButton" 
+CollisionButton.Position = UDim2.new(0,0,0.33333331346512,0) 
+CollisionButton.Size = UDim2.new(0,150,0,50) 
+CollisionButton.TextSize = 14 
+CollisionButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+CollisionButton.BorderMode = "Inset"
+
+InfiniteJumpButton.FontSize = Enum.FontSize.Size14 
+InfiniteJumpButton.TextColor3 = Color3.new(1,1,1) 
+InfiniteJumpButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+InfiniteJumpButton.Text = "Infinite Jump (false)" 
+InfiniteJumpButton.Font = Enum.Font.SourceSans 
+InfiniteJumpButton.Name = "InfiniteJumpButton" 
+InfiniteJumpButton.Position = UDim2.new(0.5,0,0.66666668653488,0) 
+InfiniteJumpButton.Size = UDim2.new(0,150,0,50) 
+InfiniteJumpButton.TextSize = 14 
+InfiniteJumpButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+
+SpeedButton.FontSize = Enum.FontSize.Size14 
+SpeedButton.TextColor3 = Color3.new(1,1,1) 
+SpeedButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+SpeedButton.Text = "Speed (false)" 
+SpeedButton.Font = Enum.Font.SourceSans 
+SpeedButton.Name = "SpeedButton" 
+SpeedButton.Position = UDim2.new(0,0,0.5,0) 
+SpeedButton.Size = UDim2.new(0,150,0,50) 
+SpeedButton.TextSize = 14 
+SpeedButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+SpeedButton.BorderMode = "Inset"
+
+JumpPowerButton.FontSize = Enum.FontSize.Size14 
+JumpPowerButton.TextColor3 = Color3.new(1,1,1) 
+JumpPowerButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+JumpPowerButton.Text = "JumpPower (false)" 
+JumpPowerButton.Font = Enum.Font.SourceSans 
+JumpPowerButton.Name = "JumpPowerButton" 
+JumpPowerButton.Position = UDim2.new(0.5,0,0.5,0) 
+JumpPowerButton.Size = UDim2.new(0,150,0,50) 
+JumpPowerButton.TextSize = 14 
+JumpPowerButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+JumpPowerButton.BorderMode = "Inset"
+
+GetAllWeaponsButton.FontSize = Enum.FontSize.Size14 
+GetAllWeaponsButton.TextColor3 = Color3.new(1,1,1) 
+GetAllWeaponsButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+GetAllWeaponsButton.Text = "Get All Weapons" 
+GetAllWeaponsButton.Font = Enum.Font.SourceSans 
+GetAllWeaponsButton.Name = "GetAllWeaponsButton" 
+GetAllWeaponsButton.Position = UDim2.new(0.5,0,0.83333331346512,0) 
+GetAllWeaponsButton.Size = UDim2.new(0,150,0,50) 
+GetAllWeaponsButton.TextSize = 14 
+GetAllWeaponsButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+GetAllWeaponsButton.BorderMode = "Inset"
+
+AboutButton.FontSize = Enum.FontSize.Size14 
+AboutButton.TextColor3 = Color3.new(1,1,1) 
+AboutButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+AboutButton.Text = "About?" 
+AboutButton.Font = Enum.Font.SourceSans 
+AboutButton.Name = "AboutButton" 
+AboutButton.Position = UDim2.new(0,0,0.83333331346512,0) 
+AboutButton.Size = UDim2.new(0,150,0,50) 
+AboutButton.TextSize = 14 
+AboutButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+AboutButton.BorderMode = "Inset"
+
+function GoToFunc()
+	for i, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Part") then
+			if v.Name == "HumanoidRootPart" then
+				if v.Parent:FindFirstChild("Humanoid") then
+					if v.Parent.Name == UsernameBox.Text then
+						Player.Character.HumanoidRootPart.CFrame = v.CFrame
+					end
+				end
+			end
+		end
+	end
+end
+
+function KillAuraFunc()
+	if KillAura then
+		for i, v in pairs(Players:GetChildren()) do
+			if v ~= Player and Whitlisted[v.Name] == nil then
+				ReplicatedStorage.meleeEvent:FireServer(v)
+			end
+		end
+	end
+end
+
+function FlyFunc() 
+	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	if Humanoid then
+		local Obfuscator = Instance.new("MeshPart", Player.Character)
+		Obfuscator.Size = Player.Character.HumanoidRootPart.Size
+		Obfuscator.CFrame = Player.Character.HumanoidRootPart.CFrame
+		Obfuscator.Transparency = 1
+		Obfuscator.Anchored = false
+		Obfuscator.CanCollide = false
+		Obfuscator.Name = "--->---<---"
+		local Weld = Instance.new("WeldConstraint", Obfuscator)
+		Weld.Part0 = Player.Character.HumanoidRootPart
+		Weld.Part1 = Obfuscator
+		Weld.Name = "---<--->---"
+		local BodyGyro = Instance.new("BodyGyro", Obfuscator) 
+		BodyGyro.P = 9e4
+		BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+		BodyGyro.CFrame = Player.Character.HumanoidRootPart.CFrame
+		BodyGyro.Name = "--<>--"
+		local BodyVelocity = Instance.new("BodyVelocity", Obfuscator)
+		BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+		BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+		BodyVelocity.Name = "--><--"
+		repeat wait()
+			if Direction.L + Direction.R ~= 0 or Direction.F + Direction.B ~= 0 then 
+				FlySpeed += 10 + (FlySpeed / 10) 
+				if FlySpeed > 10 then 
+					FlySpeed = 10 
+				end 
+			elseif not (Direction.L + Direction.R ~= 0 or Direction.F + Direction.B ~= 0) and FlySpeed ~= 0 then 
+				FlySpeed = 0
+			end 
+			if (Direction.L + Direction.R) ~= 0 or (Direction.F + Direction.B) ~= 0 then 
+				BodyVelocity.Velocity = ((CurrentCamera.CoordinateFrame.lookVector * (Direction.F + Direction.B)) + ((CurrentCamera.CoordinateFrame * CFrame.new(Direction.L + Direction.R, (Direction.F + Direction.B) * .2,0).Position) - CurrentCamera.CoordinateFrame.Position)) * FlySpeed 
+			elseif (Direction.L + Direction.R) == 0 and (Direction.F + Direction.B) == 0 and FlySpeed ~= 0 then 
+				BodyVelocity.Velocity = ((CurrentCamera.CoordinateFrame.lookVector * (Direction.F + Direction.B)) + ((CurrentCamera.CoordinateFrame * CFrame.new(Direction.L + Direction.R, (Direction.F + Direction.B) * .2,0).Position) - CurrentCamera.CoordinateFrame.Position)) * FlySpeed 
+			else 
+				BodyVelocity.Velocity = Vector3.new(0, 0, 0) 
+			end 
+			BodyGyro.CFrame = CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((0 + 0) * 360 * FlySpeed / 10), 0, 0)
+		until Fly == false or not Humanoid or Humanoid.Health < 1 or not Obfuscator
+		
+		FlySpeed = 0
+		Direction = {F = 0, B = 0, L = 0, R = 0}
+		Obfuscator:Destroy()
+		Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+	end
+end
+
+function CollisionFunc()
+	if Collision then
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = true
+				end
+			end
+		end
+	else
+		for i, v in pairs(Player.Character:GetDescendants()) do
+			if v.Name == "HumanoidRootPart" or v.Name == "Torso" or v.Name == "UpperTorso" or v.Name == "LowerTorso" or v.Name == "Head" then
+				if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end
+end
+
+function InfiniteJumpFunc()
+	if InfiniteJump then
+		local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			local function Action(Object, Function) if Object ~= nil and InfiniteJump then Function(Object) end end
+			UserInputService.InputBegan:Connect(function(Input)
+				if Input.KeyCode == Enum.KeyCode.Space then
+					Action(Humanoid, function(self)
+						if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+							Action(self.Parent.HumanoidRootPart, function(self)
+								self.Velocity = Vector3.new(0, Humanoid.JumpPower, 0);
+							end)
+						end
+					end)
+				end
+			end)
+		end 
+	end
+end
+
+function SpeedFunc()
+	local Humanoid = Player.Character:FindFirstChild("Humanoid")
+	if Humanoid then
+		if Speed then
+			Humanoid.WalkSpeed = 50
+		else
+			Humanoid.WalkSpeed = 16
+		end
+	end
+end
+
+function JumpPowerFunc()
+	local Humanoid = Player.Character:FindFirstChild("Humanoid")
+	if Humanoid then
+		if not Humanoid.UseJumpPower then 
+			Humanoid.UseJumpPower = true 
+		end
+		if JumpPower then
+			Humanoid.JumpPower = 125
+		else
+			Humanoid.JumpPower = 50
+		end
+	end
+end
+
+function GetAllWeaponsFunc()
+	for i, v in pairs(workspace.Prison_ITEMS.giver:GetChildren()) do
+		workspace.Remote.ItemHandler:InvokeServer(v.ITEMPICKUP)
+	end
+end
+
+function Draggable(Object: GuiObject, Draggable: boolean)
+	local TweenService = game:GetService("TweenService")
+	local UserInputService = game:GetService("UserInputService")
+
+	local TweenSpeed = 0.15 -- Delay
+	local DragSpeed = 0.25 -- Speed
+	local DragToggle = nil
+	local DragInput = nil
+	local DragStart = nil
+	local DragPosition = nil
+	local StartPosition = nil
+
+	local function UpdateInput(Input)
+		if not Draggable then return end        
+		local Delta = Input.Position - DragStart
+		local Location = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+		TweenService:Create(Object, TweenInfo.new(TweenSpeed), {Position = Location}):Play()
+	end
+
+	Object.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+			DragToggle = true
+			DragStart = Input.Position
+			StartPosition = Object.Position
+			Input.Changed:Connect(function()
+				if Input.UserInputState == Enum.UserInputState.End then
+					DragToggle = false
+				end
+			end)
+		end
+	end)
+
+	Object.InputChanged:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+			DragInput = Input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(Input)
+		if Input == DragInput and DragToggle then
+			UpdateInput(Input)
+		end
+	end)
+end
+
+CopyButton.MouseButton1Down:Connect(function()
+	setclipboard("https://discord.gg/Wf3VPU7Zez") -- set clipboard is a default function on most exploits that copies text to clipboard.
+end)
+
+CloseButton.MouseButton1Down:Connect(function()
+	About:TweenPosition(UDim2.new(-0.5, 0, 0.5, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+	Content:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+end)
+
+GoToButton.MouseButton1Down:Connect(function()
+	GoToFunc()
+end)
+
+KillAuraButton.MouseButton1Down:Connect(function()
+	KillAura = not KillAura
+end)
+
+FlyButton.MouseButton1Down:Connect(function()
+	Fly = not Fly
+	FlyFunc()
+end)
+
+CollisionButton.MouseButton1Down:Connect(function()
+	Collision = not Collision
+end)
+
+InfiniteJumpButton.MouseButton1Down:Connect(function()
+	InfiniteJump = not InfiniteJump
+end)
+
+SpeedButton.MouseButton1Down:Connect(function()
+	Speed = not Speed
+end)
+
+JumpPowerButton.MouseButton1Down:Connect(function()
+	JumpPower = not JumpPower
+end)
+
+GetAllWeaponsButton.MouseButton1Down:Connect(function()
+	GetAllWeaponsFunc()
+end)
+
+AboutButton.MouseButton1Down:Connect(function()
+	Content:TweenPosition(UDim2.new(1.5, 0, 0.5, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+	About:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+end)
+
+Draggable(Main, true)
+
+UserInputService.InputBegan:Connect(function(Input)
+	if Input.KeyCode == Enum.KeyCode.W then
+		Keys.W = true
+		Direction.F = 10
+	elseif Input.KeyCode == Enum.KeyCode.A then
+		Keys.A = true
+		Direction.A = -10
+	elseif Input.KeyCode == Enum.KeyCode.S then
+		Keys.S = true
+		Direction.B = -10
+	elseif Input.KeyCode == Enum.KeyCode.D then
+		Keys.D = true
+		Direction.R = 10
+	elseif Input.KeyCode == Enum.KeyCode.Space then
+		Keys.Space = true
+	elseif Input.KeyCode == Enum.KeyCode.X then
+		Fly = not Fly
+		FlyFunc()
+	elseif Input.KeyCode == Enum.KeyCode.RightControl then
+		if Main.Position == UDim2.new(Main.Position.X.Scale,Main.Position.X.Offset, -1, Main.Position.Y.Offset) then
+			Main:TweenPosition(GUI_Position, Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+		else
+			GUI_Position = Main.Position
+			
+			wait(0.05)
+			
+			Main:TweenPosition(UDim2.new(Main.Position.X.Scale,Main.Position.X.Offset, -1, Main.Position.Y.Offset), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+		end
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(Input)
+	if Input.KeyCode == Enum.KeyCode.W then
+		Keys.W = false
+		Direction.F = 0
+	elseif Input.KeyCode == Enum.KeyCode.A then
+		Keys.A = false
+		Direction.L = 0
+	elseif Input.KeyCode == Enum.KeyCode.S then
+		Keys.S = false
+		Direction.B = 0
+	elseif Input.KeyCode == Enum.KeyCode.D then
+		Keys.D = false
+		Direction.R = 0
+	elseif Input.KeyCode == Enum.KeyCode.Space then
+		Keys.Space = false
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	KillAuraButton.Text = "Kill Aura ("..tostring(KillAura)..")"
+	FlyButton.Text = "Fly[X] ("..tostring(Fly)..")"
+	CollisionButton.Text = "Collision ("..tostring(Collision)..")"
+	InfiniteJumpButton.Text = "Infinite Jump ("..tostring(InfiniteJump)..")"
+	SpeedButton.Text = "Speed ("..tostring(Speed)..")"
+	JumpPowerButton.Text = "JumpPower ("..tostring(JumpPower)..")"
+	
+	KillAuraFunc()
+	CollisionFunc()
+	InfiniteJumpFunc()
+	SpeedFunc()
+	JumpPowerFunc()
+end)
