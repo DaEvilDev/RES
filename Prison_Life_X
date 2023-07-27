@@ -39,6 +39,7 @@ local Whitlisted = {
 	"HadiV22660";
 	"szar20042";
 	"jvxxx989";
+	"0x100030c"
 }
 
 if not RunService:IsStudio() then
