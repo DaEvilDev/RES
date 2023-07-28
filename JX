@@ -1,12 +1,16 @@
 --[[
 
-- Made by: TheEvilDeveloper
+	Made by: TheEvilDeveloper
 
-- Prefix: $ for chat commands
+	Created: 2021/01/19
+	
+	Updated: 2023/07/28
 
-- Created: 2021/01/19, Updated: 2023/04/22
+	Version: 1.17
 
-- Use it at your own risk.
+	Prefix: $ for chat commands
+
+	Disclaimer: Use it at your own risk
 
 ]]
 
@@ -53,7 +57,7 @@ local FlySpeed = DefaultFlySpeed
 local CurrentFlySpeed = 0
 local MinimumFlySpeed = 5
 local MaximumFlySpeed = 25
-local Version = "1.0.7"
+local Version = "1.17"
 local Prefix = "&"
 local FlyControl = {F = 0, B = 0, L = 0, R = 0}
 local Keys = {W = false, S = false, A = false, D = false}
@@ -153,20 +157,24 @@ function FlyFunc()
 		FlyPart.Transparency = 1
 		FlyPart.Anchored = false
 		FlyPart.CanCollide = false
-		FlyPart.Name = "TheEvilDeveloper: FlyPart"
+		FlyPart.Name = "TheEvilDeveloper:FlyPart"
+		
 		local Weld = Instance.new("WeldConstraint", FlyPart)
 		Weld.Part0 = Player.Character.HumanoidRootPart
 		Weld.Part1 = FlyPart
-		Weld.Name = "TheEvilDeveloper: Weld"
+		Weld.Name = "TheEvilDeveloper:Weld"
+		
 		local BodyGyro = Instance.new("BodyGyro", FlyPart) 
 		BodyGyro.P = 9e4
 		BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
 		BodyGyro.CFrame = Player.Character.HumanoidRootPart.CFrame
-		BodyGyro.Name = "TheEvilDeveloper: BodyGyro"
+		BodyGyro.Name = "TheEvilDeveloper:BodyGyro"
+		
 		local BodyVelocity = Instance.new("BodyVelocity", FlyPart)
 		BodyVelocity.Velocity = Vector3.new(0, 0, 0)
 		BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-		BodyVelocity.Name = "TheEvilDeveloper: BodyVelocity"
+		BodyVelocity.Name = "TheEvilDeveloper:BodyVelocity"
+		
 		repeat wait() 
 			Humanoid.PlatformStand = true
 			if FlyControl.L + FlyControl.R ~= 0 or FlyControl.F + FlyControl.B ~= 0 then 
@@ -186,11 +194,14 @@ function FlyFunc()
 			end 
 			BodyGyro.CFrame = CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((0 + 0) * 360 * CurrentFlySpeed / FlySpeed), 0, 0)
 		until Flying == false or not Humanoid or Humanoid.Health < 1
+		
 		CurrentFlySpeed = 0
+		
 		FlyControl = {F = 0, B = 0, L = 0, R = 0}
+		
 		FlyPart:Destroy()
+		
 		Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
-		Humanoid.PlatformStand = false
 	end
 end
 
