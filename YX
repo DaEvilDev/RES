@@ -4,7 +4,7 @@
 	
 	Created: 2023/07/24
 	
-	Updated: 2023/07/27
+	Updated: 2023/07/28
 	
 	Version: 1.0
 	
@@ -42,7 +42,7 @@ local EASING_DIRECTION = Enum.EasingDirection.Out
 local FOG_START = Lighting.FogStart
 local FOG_END = Lighting.FogEnd
 local MAX_ZOOM = Player.CameraMaxZoomDistance
-local TOGGLE_BUTTON = Enum.KeyCode.RightControl
+local TOGGLE_BUTTON = Enum.KeyCode.Y
 
 -- General
 local GUI = nil
@@ -54,11 +54,9 @@ local ButtonsDebounce = {}
 
 -- Fly Settings
 local CanFly = false
-local FlySpeed = 10
-local CurrentFlySpeed = 0
+local FlySpeed = 75
 local FlyKeybind = Enum.KeyCode.Z
 local FlyKeys = {W = false, A = false, S = false, D = false, Q = false, E = false}
-local FlyControl = {F = 0, B = 0, L = 0, R = 0}
 
 -- Features
 local Fly = false
@@ -68,19 +66,27 @@ local Collision = true
 local InfiniteZoom = false
 local InfiniteJump = false
 
+-- Buttons
+local Fly_Button = nil
+local Fog_Button = nil
+local ESP_Button = nil
+local CollisionButton = nil
+local Infinite_Jump_Button = nil
+local Infinite_Zoom_Button = nil
+
 repeat wait()
 	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid") 
-	
+
 	if Humanoid ~= nil then
 		RigType = Humanoid.RigType
 	end
-	
+
 	if RunService:IsStudio() then
 		GuiParent = Player.PlayerGui
 	else
 		GuiParent = CoreGui
 	end
-	
+
 until RigType ~= nil and GuiParent ~= nil
 
 function FogFunc()
@@ -183,68 +189,80 @@ function InfiniteZoomFunc()
 end
 
 -- Once functions
-function FlyFunc()
-	if CanFly == false then
-		CanFly = true
-	end
-
-	Fly = not Fly
-	
+function FlyFunc(Delta)
 	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-	
-	if Humanoid ~= nil and Fly ~= false then
-		local FlyPart = Instance.new("MeshPart", Player.Character)
-		FlyPart.Size = Player.Character.HumanoidRootPart.Size
-		FlyPart.CFrame = Player.Character.HumanoidRootPart.CFrame
-		FlyPart.Transparency = 1
-		FlyPart.Anchored = false
-		FlyPart.CanCollide = false
-		FlyPart.Name = "TheEvilDeveloper:FlyPart"
 
-		local Weld = Instance.new("WeldConstraint", FlyPart)
-		Weld.Part0 = Player.Character.HumanoidRootPart
-		Weld.Part1 = FlyPart
-		Weld.Name = "TheEvilDeveloper:Weld"
+	if Humanoid ~= nil then
+		local RootPart = Humanoid.RootPart
+		local FlyPart = Lighting:FindFirstChild("TheEvilDeveloper:FlyPart")
 
-		local BodyGyro = Instance.new("BodyGyro", FlyPart) 
-		BodyGyro.P = 9e4
-		BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-		BodyGyro.CFrame = Player.Character.HumanoidRootPart.CFrame
-		BodyGyro.Name = "TheEvilDeveloper:BodyGyro"
+		if not FlyPart then
+			FlyPart = Instance.new("MeshPart", Lighting)
+			FlyPart.Size = Player.Character.HumanoidRootPart.Size
+			FlyPart.CFrame = Player.Character.HumanoidRootPart.CFrame
+			FlyPart.Transparency = 1
+			FlyPart.Anchored = false
+			FlyPart.CanCollide = false
+			FlyPart.Name = "TheEvilDeveloper:FlyPart"
 
-		local BodyVelocity = Instance.new("BodyVelocity", FlyPart)
-		BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-		BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-		BodyVelocity.Name = "TheEvilDeveloper:BodyVelocity"
+			local Weld = Instance.new("WeldConstraint", FlyPart)
+			Weld.Part0 = Player.Character.HumanoidRootPart
+			Weld.Part1 = FlyPart
+			Weld.Name = "TheEvilDeveloper:Weld"
+		else
+			FlyPart = Lighting["TheEvilDeveloper:FlyPart"]
+		end
+		
+		if RootPart ~= nil and Fly == false and FlyPart then
+			FlyPart.CFrame = RootPart.CFrame
+		end
 
-		repeat wait() 
-			Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
-			
-			if FlyControl.L + FlyControl.R ~= 0 or FlyControl.F + FlyControl.B ~= 0 then 
-				CurrentFlySpeed += FlySpeed + (CurrentFlySpeed / FlySpeed) 
-				if CurrentFlySpeed > FlySpeed then 
-					CurrentFlySpeed = FlySpeed 
-				end 
-			elseif (FlyControl.L + FlyControl.R) == 0 or (FlyControl.F + FlyControl.B) ~= 0 and CurrentFlySpeed ~= 0 then 
-				CurrentFlySpeed = 0
-			end 
-			if (FlyControl.L + FlyControl.R) ~= 0 or (FlyControl.F + FlyControl.B) ~= 0 then 
-				BodyVelocity.Velocity = ((Camera.CoordinateFrame.LookVector * (FlyControl.F + FlyControl.B)) + ((Camera.CoordinateFrame * CFrame.new(FlyControl.L + FlyControl.R, (FlyControl.F + FlyControl.B) * 0.2,0).Position) - Camera.CoordinateFrame.Position)) * CurrentFlySpeed 
-			elseif (FlyControl.L + FlyControl.R) == 0 and (FlyControl.F + FlyControl.B) == 0 and CurrentFlySpeed ~= 0 then 
-				BodyVelocity.Velocity = ((Camera.CoordinateFrame.LookVector * (FlyControl.F + FlyControl.B)) + ((Camera.CoordinateFrame * CFrame.new(FlyControl.L + FlyControl.R, (FlyControl.F + FlyControl.B) * 0.2,0).Position) - Camera.CoordinateFrame.Position)) * CurrentFlySpeed
-			else 
-				BodyVelocity.Velocity = Vector3.new(0, 0, 0) 
-			end 
-			BodyGyro.CFrame = Camera.CoordinateFrame * CFrame.Angles(-math.rad((0 + 0) * 360 * CurrentFlySpeed / FlySpeed), 0, 0)
-		until Fly == false or not Humanoid or Humanoid.Health < 1
+		if Fly == false or not Humanoid or Humanoid.Health < 1 or not Humanoid.RootPart or not FlyPart then
+			if Fly then
+				Fly = false
+			end
 
-		CurrentFlySpeed = 0
+			return
+		else
+			if RootPart ~= nil and Fly == true then
+				Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+				
+				if FlyKeys.W then
+					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
 
-		FlyControl = {F = 0, B = 0, L = 0, R = 0}
+				if FlyKeys.A then
+					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
 
-		FlyPart:Destroy()
+				if FlyKeys.S then
+					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.LookVector * (Delta * FlySpeed))
+				end
 
-		Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+				if FlyKeys.D then
+					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.RightVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.Q then
+					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+
+				if FlyKeys.E then
+					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.UpVector * (Delta * FlySpeed))
+				end
+				
+				RootPart.Velocity = Vector3.new(0, 0, 0)
+
+				Camera.Changed:Connect(function(Property)
+					if Property == "CFrame" and Fly ~= false then
+						FlyPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+						RootPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
+					end
+				end)
+
+				RootPart.CFrame = FlyPart.CFrame
+			end
+		end
 	end
 end
 
@@ -254,12 +272,13 @@ end
 
 function ForceResetFunc()
 	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-	
+
 	if Humanoid ~= nil then
 		Fly = false
-		
+		InfiniteJump = false
+
 		Humanoid.Health = 0
-		
+
 		for i, v in pairs(Player.Character:GetDescendants()) do
 			if v:IsA("Part") or v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("Tool") then
 				v:Destroy()
@@ -478,7 +497,7 @@ else
 	GUI = Instance.new("ScreenGui")
 	GUI.Name = "TheEvilDeveloper:YX"
 	GUI.IgnoreGuiInset = true
-	--GUI.ResetOnSpawn = false
+	GUI.ResetOnSpawn = false
 	GUI.DisplayOrder = 999999
 	GUI.Parent = GUIParent
 
@@ -571,7 +590,7 @@ else
 	Credits.TextXAlignment = Enum.TextXAlignment.Left
 	Credits.TextYAlignment = Enum.TextYAlignment.Top
 	Credits.Name = "Credits"
-	Credits.Text = "UI Design&Programming:\n\nTheEvilDeveloper\n@DaEvilDev\n\nAssets:\n\nKh4l1l\n@l1l4kh"
+	Credits.Text = "UI Design&Programming:\n\nTheEvilDeveloper\n@DaEvilDev\n\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"
 
 	local ButtonsFrame = Instance.new("ScrollingFrame", ContentFrame)
 	ButtonsFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -590,7 +609,12 @@ else
 	UILayout.Name = "UI_Layout"	
 
 	-- Toggable Buttons
-	CreateButton("Fly_Button", "Fly", 1, nil, nil, ButtonsFrame, "Unchecked", FlyFunc)
+	CreateButton("Fly_Button", "Fly", 1, nil, nil, ButtonsFrame, "Unchecked", 
+		function()
+			CanFly = true
+			Fly = not Fly
+		end
+	)
 
 	CreateButton("Fog_Button", "Fog", 2, nil, nil, ButtonsFrame, "Checked", 
 		function()
@@ -641,9 +665,11 @@ else
 	-- About Frame Buttons
 	CreateButton("Copy_Button", "Copy Discord Invite", 1, UDim2.new(0.825, 0, 0, 25), UDim2.new(0.5, 0, 0.765, 0), AboutFrame, nil, 
 		function()
-			if setclipboard ~= nil then
+			local Success, Failed = pcall(function()
 				setclipboard("https://discord.gg/Wf3VPU7Zez")
-			else
+			end)
+
+			if not Success then
 				StarterGui:SetCore("SendNotification", {
 					Title = "Yield X "..VERSION;
 					Text = "Your exploit does not support that."; 
@@ -662,18 +688,18 @@ else
 		end
 	)
 
-	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.50, false, nil)
 
 	StarterGui:SetCore("SendNotification", {
 		Title = "Yield X "..VERSION;
-		Text = "Made by: TheEvilDeveloper\n[@DaEvilDev]\n Press <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"; 
+		Text = "Made by: TheEvilDeveloper\n@DaEvilDev\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"; 
 		Duration = 500;
 		Button1 = "OK";
 	})
 end
 
-UserInputService.InputBegan:Connect(function(Input)
-	if Input.KeyCode == TOGGLE_BUTTON then
+UserInputService.InputBegan:Connect(function(Key)
+	if Key.KeyCode == TOGGLE_BUTTON then
 		if ToggleSound ~= nil then
 			ToggleSound:Play()
 		end
@@ -691,62 +717,46 @@ UserInputService.InputBegan:Connect(function(Input)
 		wait(0.5)
 
 		GUIDebounce = false
-	elseif Input.KeyCode == FlyKeybind and CanFly ~= false then
-		FlyFunc()
-	elseif Input.KeyCode == Enum.KeyCode.W then
+	elseif Key.KeyCode == FlyKeybind and CanFly ~= false then
+		Fly = not Fly
+	elseif Key.KeyCode == Enum.KeyCode.W then
 		FlyKeys.W = true
-		if Fly then
-			FlyControl.F = FlySpeed
-		end  
-	elseif Input.KeyCode == Enum.KeyCode.S then
+	elseif Key.KeyCode == Enum.KeyCode.S then
 		FlyKeys.S = true
-		if Fly then
-			FlyControl.B = -FlySpeed
-		end  
-	elseif Input.KeyCode == Enum.KeyCode.A then
+	elseif Key.KeyCode == Enum.KeyCode.A then
 		FlyKeys.A = true
-		if Fly then
-			FlyControl.L = -FlySpeed
-		end  
-	elseif Input.KeyCode == Enum.KeyCode.D then
+	elseif Key.KeyCode == Enum.KeyCode.D then
 		FlyKeys.D = true
-		if Fly then
-			FlyControl.R = FlySpeed
-		end    
+	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
+		FlyKeys.Q = true
+	elseif Key.KeyCode == Enum.KeyCode.E then
+		FlyKeys.E = true
 	end
 end)
 
-UserInputService.InputEnded:Connect(function(Input)
-	if Input.KeyCode == Enum.KeyCode.W then
+UserInputService.InputEnded:Connect(function(Key)
+	if Key.KeyCode == Enum.KeyCode.W then
 		FlyKeys.W = false
-		if Fly then
-			FlyControl.F = 0
-		end
-	elseif Input.KeyCode == Enum.KeyCode.S then
+	elseif Key.KeyCode == Enum.KeyCode.S then
 		FlyKeys.S = false
-		if Fly then
-			FlyControl.B = 0
-		end
-	elseif Input.KeyCode == Enum.KeyCode.A then
+	elseif Key.KeyCode == Enum.KeyCode.A then
 		FlyKeys.A = false
-		if Fly then
-			FlyControl.L = 0
-		end
-	elseif Input.KeyCode == Enum.KeyCode.D then
+	elseif Key.KeyCode == Enum.KeyCode.D then
 		FlyKeys.D = false
-		if Fly then
-			FlyControl.R = 0
-		end
+	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
+		FlyKeys.Q = false
+	elseif Key.KeyCode == Enum.KeyCode.E then
+		FlyKeys.E = false
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
+RunService.Heartbeat:Connect(function(Delta)
 	if GUI == nil then
 		local GUI = GUIParent:FindFirstChild("TheEvilDeveloper:YX")
 	end
 
 	if GUI ~= nil then
-		local Fly_Button = GetButton("Fly_Button")
+
 
 		if Fly_Button then
 			SetButton(Fly_Button, Fly)
@@ -755,36 +765,38 @@ RunService.RenderStepped:Connect(function()
 					Fly_Button.Button_Content.Text = "Fly <"..string.gsub(tostring(FlyKeybind), "Enum.KeyCode.", "")..">"
 				end
 			end
+		else
+			Fly_Button = GetButton("Fly_Button")
 		end
-
-		local Fog_Button = GetButton("Fog_Button")
 
 		if Fog_Button then
 			SetButton(Fog_Button, Fog)
+		else
+			Fog_Button = GetButton("Fog_Button")
 		end
-
-		local ESP_Button = GetButton("ESP_Button")
 
 		if ESP_Button then
 			SetButton(ESP_Button, ESP)
+		else
+			ESP_Button = GetButton("ESP_Button")
 		end
-
-		local CollisionButton = GetButton("Collision_Button")
 
 		if CollisionButton then
 			SetButton(CollisionButton, Collision)
+		else
+			CollisionButton = GetButton("Collision_Button")
 		end
-
-		local Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
 
 		if Infinite_Jump_Button then
 			SetButton(Infinite_Jump_Button, InfiniteJump)
+		else
+			Infinite_Jump_Button = GetButton("Infinite_Jump_Button")
 		end
-
-		local Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
 
 		if Infinite_Zoom_Button then
 			SetButton(Infinite_Zoom_Button, InfiniteZoom)
+		else
+			Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
 		end
 
 	end
@@ -796,6 +808,7 @@ RunService.RenderStepped:Connect(function()
 		InfiniteJump = false
 	end
 
+	FlyFunc(Delta)
 	FogFunc()
 	ESPFunc()
 	CollisionFunc()
