@@ -1,12 +1,17 @@
 --[[
 
-- Made by: TheEvilDeveloper
+	UI++ modified version of OpenGui
 
-- Created: 2019/05/12, Updated: 2021/02/13
+	Re-branding by: TheEvilDeveloper
 
+	Created: 2019/05/12
+  
+	Updated: 2021/02/13
+
+	Version: 1.0
 ]]
 
--- // Open Gui
+-- // UI++
 
 if not _G.require then
 	_G.require = require
@@ -15,7 +20,7 @@ end
 --// API References
 local GUIData = (function()
 	-- Variables
-	_V = "1.0.0"
+	_V = "1.0"
 
 	local screenGui = (script:FindFirstChild("ScreenGui")) or game:GetObjects("rbxassetid://2718157603")[1]:FindFirstChild("ScreenGui", true)
 	local Container = screenGui.Frame
@@ -38,7 +43,7 @@ local GUIData = (function()
 
 	pcall(function()
 		screenGui.Parent = game:GetService("CoreGui")
-		screenGui.Name = "Shut up bitch"
+		screenGui.Name = "UI++ ".._V
 	end)
 
 	Container.Parent = nil
@@ -61,14 +66,14 @@ local GUIData = (function()
 	local writefile = writefile or function() end
 	local function Save()
 		local JSONData = HttpService:JSONEncode(saveData)
-		writefile("OpenGui.txt", JSONData)
+		writefile("UIPP.txt", JSONData)
 	end
 
 	-- Color Functions
 	local color = {}
 	local colors = {
-		TextDisabled = Color3.fromRGB(200, 200, 200),
-		TextEnabled = Color3.fromRGB(255, 255, 255),
+		TextDisabled = Color3.fromRGB(175, 175, 175),
+		TextEnabled = Color3.fromRGB(220, 220, 220),
 	}
 
 	local Colors = {
@@ -944,7 +949,7 @@ local GUIData = (function()
 		end
 	end)
 
-	Mods.Text = "OpenGui " .. _V
+	Mods.Text = "UI++ " .. _V
 
 	game.Close:Connect(function()
 		Save()
@@ -2432,7 +2437,7 @@ local backcolor = Color3.new()
 --// Saving
 local readfile = readfile or function() end
 pcall(function()
-	local JSONData = readfile("OpenGui.txt")
+	local JSONData = readfile("UIPP.txt")
 	if JSONData then
 		local LUAData = HttpService:JSONDecode(JSONData)
 		saveData.Options = LUAData.Options
@@ -2450,10 +2455,10 @@ end)
 local Render = gui:create("Container", {
 	Name = "Render",
 })--|
-local OpenGui = Render.self:create("Toggle", {
-	Name = "OpenGui",
+local UIPP = Render.self:create("Toggle", {
+	Name = "UIPP",
 	Default = true,
-	Hotkey = tostring(Enum.KeyCode.RightControl),
+	Hotkey = tostring(Enum.KeyCode.U),
 	Hint = "The navigation GUI",
 	Callback = function(enabled)
 		for _, frame in pairs(screenGui:GetChildren()) do
@@ -2465,12 +2470,12 @@ local OpenGui = Render.self:create("Toggle", {
 		screenGui.Hint.Visible = false
 	end,
 })--|
-local Opacity = OpenGui.self:create("Number", {
+local Opacity = UIPP.self:create("Number", {
 	Name = "Opacity",
 	Min = 0,
 	Max = 1,
 	Round = 0.01,
-	Default = 0.75,
+	Default = 0.85,
 	Hint = "Transparency of the navigation GUI",
 	Callback = function(alpha)
 		opacity = 1 - alpha
@@ -2482,7 +2487,7 @@ local Opacity = OpenGui.self:create("Number", {
 		end
 	end,
 })
-local Width = OpenGui.self:create("Number", {
+local Width = UIPP.self:create("Number", {
 	Name = "Width",
 	Min = 200,
 	Max = 300,
@@ -2498,9 +2503,9 @@ local Width = OpenGui.self:create("Number", {
 		end
 	end,
 })
-local Color = OpenGui.self:create("Color", {
+local Color = UIPP.self:create("Color", {
 	Name = "Background Color",
-	Default = Color3.fromRGB(85, 40, 255),
+	Default = Color3.fromRGB(38, 30, 62),
 	Hint = "Background color of the navigation GUI",
 	Callback = function(color)
 		backcolor = color
@@ -2935,7 +2940,7 @@ local Flight = Movement.self:create("Toggle", {
 })--|
 local FlightSpeed = Flight.self:create("Number", {
 	Name = "Speed",
-	Default = 5,
+	Default = 2,
 	Min = 0.1,
 	Max = 100,
 	Round = 0.1,
@@ -2946,7 +2951,7 @@ local FlightSpeed = Flight.self:create("Number", {
 })
 local FlightSpeed = Flight.self:create("Number", {
 	Name = "Smoothness",
-	Default = 0.2,
+	Default = 0.9,
 	Min = 0.1,
 	Max = 1,
 	Round = 0.01,
