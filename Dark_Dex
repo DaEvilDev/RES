@@ -1,8 +1,12 @@
 --[[
 
-- Made by: TheEvilDeveloper
+	Made by: TheEvilDeveloper
 
-- Created: 2021/01/03, Updated: 2021/03/27
+	Created: 2021/01/03
+
+	Updated: 2023/07/28
+	
+	Version: 1.0
 
 ]]
 
@@ -29,7 +33,6 @@ end
 function createDexGui()
     local DexGui = CreateInstance("ScreenGui",{DisplayOrder=99999,Enabled=true,ResetOnSpawn=true,IgnoreGuiInset=true,Name="DARK DEX",})
     local DexGui2 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.39215689897537,0.39215689897537,0.39215689897537),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1,-300,0,0),Rotation=0,Selectable=false,Size=UDim2.new(0,300,1,0),SizeConstraint=0,Visible=true,ZIndex=1,Name="ContentFrameR",Parent = DexGui})
-    local DexGui3 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.39215689897537,0.39215689897537,0.39215689897537),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,-300,0,0),Rotation=0,Selectable=false,Size=UDim2.new(0,300,1,0),SizeConstraint=0,Visible=true,ZIndex=1,Name="ContentFrameL",Parent = DexGui})
     local DexGui4 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.11764706671238,0.11764706671238,0.11764706671238),BackgroundTransparency=0,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0.5,-150,0,0),Rotation=0,Selectable=false,Size=UDim2.new(0,300,0,36),SizeConstraint=0,Visible=false,ZIndex=10,Name="TopMenu",Parent = DexGui})
     local DexGui5 = CreateInstance("TextLabel",{Font=3,FontSize=5,Text="1.1.0",TextColor3=Color3.new(1,1,1),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=true,TextXAlignment=2,TextYAlignment=1,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,0,0,16),Rotation=0,Selectable=false,Size=UDim2.new(0,30,0,18),SizeConstraint=0,Visible=true,ZIndex=10,Name="Version",Parent = DexGui4})
     local DexGui6 = CreateInstance("ImageLabel",{Image="rbxassetid://474172996",ImageColor3=Color3.new(0.11764706671238,0.11764706671238,0.11764706671238),ImageRectOffset=Vector2.new(0,0),ImageRectSize=Vector2.new(0,0),ImageTransparency=0,ScaleType=0,SliceCenter=Rect.new(0,0,0,0),Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1,-9,0,9),Rotation=90,Selectable=false,Size=UDim2.new(0,36,0,18),SizeConstraint=0,Visible=true,ZIndex=10,Name="Slant",Parent = DexGui4})
@@ -105,7 +108,7 @@ function createDexGui()
     local DexGui76 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.18823531270027,0.18823531270027,0.18823531270027),BackgroundTransparency=0,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,0,0,0),Rotation=0,Selectable=false,Size=UDim2.new(0.60000002384186,0,1,0),SizeConstraint=0,Visible=true,ZIndex=1,Name="Main",Parent = DexGui75})
     local DexGui77 = CreateInstance("TextLabel",{Font=4,FontSize=9,Text="DARK",TextColor3=Color3.new(1,1,1),TextScaled=true,TextSize=48,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=2,TextYAlignment=1,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,0,0,0),Rotation=0,Selectable=false,Size=UDim2.new(1,0,0,125),SizeConstraint=0,Visible=true,ZIndex=1,Name="Title",Parent = DexGui75})
     local DexGui78 = CreateInstance("TextLabel",{Font=4,FontSize=6,Text="DEX",TextColor3=Color3.new(1,1,1),TextScaled=true,TextSize=18,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment="Center",TextYAlignment="Center",Active=false,AnchorPoint=Vector2.new(0.5,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0.5,0,0,100),Rotation=0,Selectable=false,Size=UDim2.new(0,125,0,35),SizeConstraint=0,Visible=true,ZIndex=1,Name="Version",Parent = DexGui75})
-    local DexGui79 = CreateInstance("TextLabel",{Font=4,FontSize=6,Text="Made by: TheEvilDeveloper",TextColor3=Color3.new(1,1,1),TextScaled=false,TextSize=18,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=0,TextYAlignment=2,Active=false,AnchorPoint=Vector2.new(0.5,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0.5,0,0.85,0),Rotation=0,Selectable=false,Size=UDim2.new(0.75,0,0.125,0),SizeConstraint=0,Visible=true,ZIndex=1,Name="Creator",Parent = DexGui75})
+    local DexGui79 = CreateInstance("TextLabel",{Font=4,FontSize=6,Text="Made by: TheEvilDeveloper\n@DaEvilDev",TextColor3=Color3.new(1,1,1),TextScaled=false,TextSize=18,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=2,Active=false,AnchorPoint=Vector2.new(0.5,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0.5,0,0.825,0),Rotation=0,Selectable=false,Size=UDim2.new(0.75,0,0.125,0),SizeConstraint=0,Visible=true,ZIndex=1,Name="Creator",Parent = DexGui75})
     local DexGui80 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.039215687662363,0.039215687662363,0.039215687662363),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,50,0,120),Rotation=0,Selectable=false,Size=UDim2.new(0,200,0,80),SizeConstraint=0,Visible=true,ZIndex=1,Name="Progress",Parent = DexGui76})
     local DexGui81 = CreateInstance("Frame",{Style=0,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(0.3137255012989,0.3137255012989,0.3137255012989),BackgroundTransparency=0,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,0,0,0),Rotation=0,Selectable=false,Size=UDim2.new(0,0,0,0),SizeConstraint=0,Visible=false,ZIndex=1,Name="Line",Parent = DexGui80})
     local DexGui82 = CreateInstance("TextLabel",{Font=3,FontSize=5,Text="",TextColor3=Color3.new(0.78431379795074,0.78431379795074,0.78431379795074),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0,0,0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=0,TextYAlignment=1,Active=false,AnchorPoint=Vector2.new(0,0),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,BorderColor3=Color3.new(0.10588236153126,0.16470588743687,0.20784315466881),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0,10,0,0),Rotation=0,Selectable=false,Size=UDim2.new(1,-10,0,15),SizeConstraint=0,Visible=true,ZIndex=1,Name="Progress1",Parent = DexGui80})
@@ -132,7 +135,7 @@ if game:GetService("RunService"):IsStudio() then
 else
     gui.Parent = Services.CoreGui
 end
-local contentL = gui:WaitForChild("ContentFrameL")
+
 local contentR = gui:WaitForChild("ContentFrameR")
 local resources = gui:WaitForChild("Resources")
 
@@ -232,7 +235,6 @@ function f.buttonArrows(size,num,dir)
         end
         return arrowFrame
     end
-    error("r u ok")
 end
 
 local ScrollBar do
@@ -3389,7 +3391,6 @@ local function welcomePlayer()
     f.addToPane(propertiesPanel,"Right")
     f.resizePaneItem(propertiesPanel,"Right",0.5)
 
-    contentL:TweenPosition(UDim2.new(0,0,0,0),Enum.EasingDirection.Out,Enum.EasingStyle.Quart,0.5,true)
     contentR:TweenPosition(UDim2.new(1,-explorerSettings.RPaneWidth,0,0),Enum.EasingDirection.Out,Enum.EasingStyle.Quart,0.5,true)
 
     wait()
@@ -3425,5 +3426,3 @@ welcomePlayer()
 for i,v in pairs(nodes[workspace]) do
     print(type(i))
 end
-
-print("DARK DEX By: TheEvilDeveloper")
