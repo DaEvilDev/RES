@@ -22,6 +22,7 @@ local CurrentCamera = workspace.CurrentCamera
 
 local Version = "1.1"
 local Fly = false
+local ESP = false
 local Speed = false
 local JumpPower = false
 local Collision = true
@@ -44,7 +45,7 @@ local Whitelist = {
 
 if not RunService:IsStudio() then
 	GUI_Parent = CoreGui
-	if CoreGui:FindFirstChild("TheEvilDeveloper: Prison Life X") then
+	if CoreGui:FindFirstChild("TheEvilDeveloper:PLX") then
 		StarterGui:SetCore("SendNotification", {
 			Title = "Prison Life X "..Version;
 			Text = "Gui already exists."; 
@@ -59,7 +60,7 @@ repeat wait() until GUI_Parent ~= nil and game:IsLoaded()
 
 StarterGui:SetCore("SendNotification", {
 	Title = "Prison Life X "..Version;
-	Text = "Loaded \n Show/Hide: 'RightCtrl'\n Made by: TheEvilDeveloper"; 
+	Text = "Made by: TheEvilDeveloper\n@DaEvilDev\nPress <P> to toggle GUI"; 
 	Duration = 25;
 	Button1 = "Okay";
 })
@@ -68,12 +69,13 @@ local GUI = Instance.new("ScreenGui", GUI_Parent)
 local Main = Instance.new("Frame", GUI)
 local Content = Instance.new("Frame", Main)
 local ButtonsFrame = Instance.new("ScrollingFrame", Content)
+local UIGrid = Instance.new("UIGridLayout", ButtonsFrame)
 local Shadow = Instance.new("ImageLabel", Content)
 local About = Instance.new("Frame", Main)
 local Creator = Instance.new("TextLabel", About)
 local CopyButton = Instance.new("TextButton", About)
 local CloseButton = Instance.new("TextButton", About)
-local ShowHideHint = Instance.new("TextLabel", About)
+local HintLabel = Instance.new("TextLabel", About)
 local VersionLabel = Instance.new("TextLabel", About)
 local Title = Instance.new("TextLabel", Content)
 local UsernameBox = Instance.new("TextBox", ButtonsFrame)
@@ -82,13 +84,14 @@ local KillButton = Instance.new("TextButton", ButtonsFrame)
 local KillAllButton = Instance.new("TextButton", ButtonsFrame)
 local KillAuraButton = Instance.new("TextButton", ButtonsFrame)
 local FlyButton = Instance.new("TextButton", ButtonsFrame)
+local ESPButton = Instance.new("TextButton", ButtonsFrame)
 local CollisionButton = Instance.new("TextButton", ButtonsFrame)
 local InfiniteJumpButton = Instance.new("TextButton", ButtonsFrame)
 local SpeedButton = Instance.new("TextButton", ButtonsFrame)
 local JumpPowerButton = Instance.new("TextButton", ButtonsFrame)
 local AboutButton = Instance.new("TextButton", ButtonsFrame)
 
-GUI.Name = "TheEvilDeveloper: Prison Life X"
+GUI.Name = "TheEvilDeveloper:PLX"
 
 Main.AnchorPoint = Vector2.new(0.5,0.5)
 Main.Name = "Main"
@@ -113,6 +116,14 @@ ButtonsFrame.Size = UDim2.new(1,0,0.825,0)
 ButtonsFrame.BorderSizePixel = 0
 ButtonsFrame.Transparency = 1
 ButtonsFrame.ClipsDescendants = true
+ButtonsFrame.CanvasSize = UDim2.new(0,0,0,0)
+ButtonsFrame.ScrollBarThickness = 0
+ButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+UIGrid.Name = "Grid"
+UIGrid.CellSize = UDim2.new(0, 150, 0, 50)
+UIGrid.CellPadding = UDim2.new(0,0,0,0)
+UIGrid.SortOrder = Enum.SortOrder.LayoutOrder
 
 Shadow.AnchorPoint = Vector2.new(0.5,0.5)
 Shadow.Image = "rbxassetid://4224835054"
@@ -171,18 +182,18 @@ CloseButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51)
 CloseButton.BorderMode = "Inset"
 CloseButton.ZIndex = 2
 
-ShowHideHint.FontSize = Enum.FontSize.Size14 
-ShowHideHint.TextColor3 = Color3.new(1,1,1) 
-ShowHideHint.Text = "Toggle GUI: 'RightControl'" 
-ShowHideHint.BackgroundTransparency = 1 
-ShowHideHint.Size = UDim2.new(0,300,0,24) 
-ShowHideHint.TextWrapped = true 
-ShowHideHint.Font = Enum.Font.SourceSans 
-ShowHideHint.Name = "ShowHide" 
-ShowHideHint.Position = UDim2.new(0,0,0.825,0) 
-ShowHideHint.TextSize = 14 
-ShowHideHint.BackgroundColor3 = Color3.new(1,1,1) 
-ShowHideHint.ZIndex = 2
+HintLabel.FontSize = Enum.FontSize.Size14 
+HintLabel.TextColor3 = Color3.new(1,1,1) 
+HintLabel.Text = "Press <P> to toggle GUI" 
+HintLabel.BackgroundTransparency = 1 
+HintLabel.Size = UDim2.new(0,300,0,24) 
+HintLabel.TextWrapped = true 
+HintLabel.Font = Enum.Font.SourceSans 
+HintLabel.Name = "Hint" 
+HintLabel.Position = UDim2.new(0,0,0.825,0) 
+HintLabel.TextSize = 14 
+HintLabel.BackgroundColor3 = Color3.new(1,1,1) 
+HintLabel.ZIndex = 2
 
 VersionLabel.FontSize = Enum.FontSize.Size14 
 VersionLabel.TextColor3 = Color3.new(1,1,1) 
@@ -236,18 +247,18 @@ GoToButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51)
 GoToButton.BorderMode = "Inset"
 GoToButton.LayoutOrder = 2
 
-KillAuraButton.FontSize = Enum.FontSize.Size14 
-KillAuraButton.TextColor3 = Color3.new(1,1,1) 
-KillAuraButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
-KillAuraButton.Text = "Kill Aura (false)" 
-KillAuraButton.Font = Enum.Font.SourceSans 
-KillAuraButton.Name = "KillAuraButton" 
-KillAuraButton.Position = UDim2.new(0,0,0.66666668653488,0) 
-KillAuraButton.Size = UDim2.new(0,150,0,50) 
-KillAuraButton.TextSize = 14 
-KillAuraButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
-KillAuraButton.BorderMode = "Inset"
-KillAuraButton.LayoutOrder = 3
+KillAllButton.FontSize = Enum.FontSize.Size14 
+KillAllButton.TextColor3 = Color3.new(1,1,1) 
+KillAllButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+KillAllButton.Text = "Kill All" 
+KillAllButton.Font = Enum.Font.SourceSans 
+KillAllButton.Name = "GetAllWeaponsButton" 
+KillAllButton.Position = UDim2.new(0.5,0,0.83333331346512,0) 
+KillAllButton.Size = UDim2.new(0,150,0,50) 
+KillAllButton.TextSize = 14 
+KillAllButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+KillAllButton.BorderMode = "Inset"
+KillAllButton.LayoutOrder = 3
 
 KillButton.FontSize = Enum.FontSize.Size14 
 KillButton.TextColor3 = Color3.new(1,1,1) 
@@ -262,18 +273,18 @@ KillButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51)
 KillButton.BorderMode = "Inset"
 KillButton.LayoutOrder = 4
 
-KillAllButton.FontSize = Enum.FontSize.Size14 
-KillAllButton.TextColor3 = Color3.new(1,1,1) 
-KillAllButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
-KillAllButton.Text = "Kill All" 
-KillAllButton.Font = Enum.Font.SourceSans 
-KillAllButton.Name = "GetAllWeaponsButton" 
-KillAllButton.Position = UDim2.new(0.5,0,0.83333331346512,0) 
-KillAllButton.Size = UDim2.new(0,150,0,50) 
-KillAllButton.TextSize = 14 
-KillAllButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
-KillAllButton.BorderMode = "Inset"
-KillAllButton.LayoutOrder = 5
+KillAuraButton.FontSize = Enum.FontSize.Size14 
+KillAuraButton.TextColor3 = Color3.new(1,1,1) 
+KillAuraButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+KillAuraButton.Text = "Kill Aura (false)" 
+KillAuraButton.Font = Enum.Font.SourceSans 
+KillAuraButton.Name = "KillAuraButton" 
+KillAuraButton.Position = UDim2.new(0,0,0.66666668653488,0) 
+KillAuraButton.Size = UDim2.new(0,150,0,50) 
+KillAuraButton.TextSize = 14 
+KillAuraButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+KillAuraButton.BorderMode = "Inset"
+KillAuraButton.LayoutOrder = 5
 
 FlyButton.FontSize = Enum.FontSize.Size14 
 FlyButton.TextColor3 = Color3.new(1,1,1) 
@@ -286,6 +297,20 @@ FlyButton.Size = UDim2.new(0,150,0,50)
 FlyButton.TextSize = 14 
 FlyButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 FlyButton.BorderMode = "Inset"
+FlyButton.LayoutOrder = 6
+
+ESPButton.FontSize = Enum.FontSize.Size14 
+ESPButton.TextColor3 = Color3.new(1,1,1) 
+ESPButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+ESPButton.Text = "ESP (false)" 
+ESPButton.Font = Enum.Font.SourceSans 
+ESPButton.Name = "ESPButton" 
+ESPButton.Position = UDim2.new(0.5,0,0.33333331346512,0) 
+ESPButton.Size = UDim2.new(0,150,0,50) 
+ESPButton.TextSize = 14 
+ESPButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+ESPButton.BorderMode = "Inset"
+ESPButton.LayoutOrder = 7
 
 CollisionButton.FontSize = Enum.FontSize.Size14 
 CollisionButton.TextColor3 = Color3.new(1,1,1) 
@@ -298,6 +323,7 @@ CollisionButton.Size = UDim2.new(0,150,0,50)
 CollisionButton.TextSize = 14 
 CollisionButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 CollisionButton.BorderMode = "Inset"
+CollisionButton.LayoutOrder = 8
 
 InfiniteJumpButton.FontSize = Enum.FontSize.Size14 
 InfiniteJumpButton.TextColor3 = Color3.new(1,1,1) 
@@ -309,6 +335,8 @@ InfiniteJumpButton.Position = UDim2.new(0.5,0,0.66666668653488,0)
 InfiniteJumpButton.Size = UDim2.new(0,150,0,50) 
 InfiniteJumpButton.TextSize = 14 
 InfiniteJumpButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+InfiniteJumpButton.BorderMode = "Inset"
+InfiniteJumpButton.LayoutOrder = 9
 
 SpeedButton.FontSize = Enum.FontSize.Size14 
 SpeedButton.TextColor3 = Color3.new(1,1,1) 
@@ -321,6 +349,7 @@ SpeedButton.Size = UDim2.new(0,150,0,50)
 SpeedButton.TextSize = 14 
 SpeedButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 SpeedButton.BorderMode = "Inset"
+SpeedButton.LayoutOrder = 11
 
 JumpPowerButton.FontSize = Enum.FontSize.Size14 
 JumpPowerButton.TextColor3 = Color3.new(1,1,1) 
@@ -333,8 +362,7 @@ JumpPowerButton.Size = UDim2.new(0,150,0,50)
 JumpPowerButton.TextSize = 14 
 JumpPowerButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 JumpPowerButton.BorderMode = "Inset"
-
-
+JumpPowerButton.LayoutOrder = 10
 
 AboutButton.FontSize = Enum.FontSize.Size14 
 AboutButton.TextColor3 = Color3.new(1,1,1) 
@@ -347,6 +375,7 @@ AboutButton.Size = UDim2.new(0,150,0,50)
 AboutButton.TextSize = 14 
 AboutButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 AboutButton.BorderMode = "Inset"
+AboutButton.LayoutOrder = 12
 
 function GoToFunc()
 	for i, v in pairs(workspace:GetDescendants()) do
@@ -367,6 +396,48 @@ function KillAuraFunc()
 		for i, v in pairs(Players:GetChildren()) do
 			if v ~= Player and Whitelist[v.Name] == nil then
 				ReplicatedStorage.meleeEvent:FireServer(v)
+			end
+		end
+	end
+end
+
+function ESPFunc()
+	if ESP ~= false then
+		for i, v in pairs(workspace:GetDescendants()) do
+			if v:IsA("Humanoid") then
+				local _Player = Players:GetPlayerFromCharacter(v.Parent)
+				if _Player and _Player ~= Player then
+					if _Player.Character.HumanoidRootPart:FindFirstChild("TheEvilDeveloper:ESP") == nil then
+						local ESPGui = Instance.new("BillboardGui", v.RootPart)
+						ESPGui.AlwaysOnTop = true
+						ESPGui.Adornee = v.RootPart
+						ESPGui.Size = UDim2.new(6.5, 0, 6.5, 0)
+						ESPGui.Name = "TheEvilDeveloper:ESP"
+						local ESPImage = Instance.new("ImageLabel", ESPGui)
+						ESPImage.Size = UDim2.new(1, 0, 1, 0)
+						ESPImage.Image = "rbxassetid://8257933359" -- Other recommanded id: 6328449823
+						ESPImage.BackgroundTransparency = 1
+						ESPImage.ImageColor3 = Color3.fromRGB(200, 20, 20)
+						ESPImage.Name = "TheEvilDeveloper:ESP_Image"
+						local ESPText = Instance.new("TextLabel", ESPGui)
+						ESPText.BackgroundTransparency = 1
+						ESPText.AnchorPoint = Vector2.new(0.5, 0.5)
+						ESPText.Position = UDim2.new(0.5, 0, 0.5, 0)
+						ESPText.Size = UDim2.new(0.75, 0, 1, 0)
+						ESPText.Font = Color3.fromRGB(200, 20, 20)
+						ESPText.TextColor3 = Color3.fromRGB(200, 20, 20)
+						ESPText.TextScaled = true
+						ESPText.FontFace.Weight = Enum.FontWeight.ExtraBold
+						ESPText.Text = v.Parent.Name
+						ESPText.Name = "TheEvilDeveloper:ESP_Text"
+					end
+				end
+			end
+		end
+	else
+		for i, v in pairs(workspace:GetDescendants()) do
+			if v.Name == "TheEvilDeveloper:ESP" then
+				v:Destroy()
 			end
 		end
 	end
@@ -396,6 +467,7 @@ function FlyFunc()
 		BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
 		BodyVelocity.Name = "--><--"
 		repeat wait()
+			Humanoid.PlatformStand = true
 			if Direction.L + Direction.R ~= 0 or Direction.F + Direction.B ~= 0 then 
 				FlySpeed += 10 + (FlySpeed / 10) 
 				if FlySpeed > 10 then 
@@ -413,7 +485,7 @@ function FlyFunc()
 			end 
 			BodyGyro.CFrame = CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((0 + 0) * 360 * FlySpeed / 10), 0, 0)
 		until Fly == false or not Humanoid or Humanoid.Health < 1 or not Obfuscator
-		
+		Humanoid.PlatformStand = false
 		FlySpeed = 0
 		Direction = {F = 0, B = 0, L = 0, R = 0}
 		Obfuscator:Destroy()
@@ -464,7 +536,7 @@ end
 function SpeedFunc()
 	local Humanoid = Player.Character:FindFirstChild("Humanoid")
 	if Humanoid then
-		
+
 		if Speed then
 			Humanoid.WalkSpeed = 50
 		else
@@ -479,7 +551,7 @@ function JumpPowerFunc()
 		if not Humanoid.UseJumpPower then 
 			Humanoid.UseJumpPower = true 
 		end
-		
+
 		if JumpPower then
 			Humanoid.JumpPower = 125
 		else
@@ -492,11 +564,7 @@ function KillFunc(Target)
 	pcall(function()
 		if Target.Character:FindFirstChild("ForceField") or not workspace:FindFirstChild(Target.Name) or not workspace:FindFirstChild(Target.Name):FindFirstChild("Head") or Target == nil or Target.Character.Parent ~= workspace then return end
 		workspace.Remote.ItemHandler:InvokeServer(workspace.Prison_ITEMS.giver["Remington 870"].ITEMPICKUP)
-		
-		if Target:FindFirstChild("Humanoid") then
-			Target.Humanoid.Health = 0
-		end
-		
+
 		local MyTeam = GetTeam()
 		if Target.TeamColor.Name == Player.TeamColor.Name then
 			local savedcf = GetPos()
@@ -605,7 +673,9 @@ function Draggable(Object: GuiObject, Draggable: boolean)
 end
 
 CopyButton.MouseButton1Down:Connect(function()
-	setclipboard("https://discord.gg/Wf3VPU7Zez") -- set clipboard is a default function on most exploits that copies text to clipboard.
+	pcall(function()
+		setclipboard("https://discord.gg/Wf3VPU7Zez") -- set clipboard is a default function on most exploits that copies text to clipboard.
+	end)
 end)
 
 CloseButton.MouseButton1Down:Connect(function()
@@ -626,6 +696,10 @@ FlyButton.MouseButton1Down:Connect(function()
 	FlyFunc()
 end)
 
+ESPButton.MouseButton1Down:Connect(function()
+	ESP = not ESP
+end)
+
 CollisionButton.MouseButton1Down:Connect(function()
 	Collision = not Collision
 end)
@@ -643,15 +717,9 @@ JumpPowerButton.MouseButton1Down:Connect(function()
 end)
 
 KillButton.MouseButton1Down:Connect(function()
-	for i, v in pairs(workspace:GetDescendants()) do
-		if v:IsA("Part") then
-			if v.Name == "HumanoidRootPart" then
-				if v.Parent:FindFirstChild("Humanoid") then
-					if string.lower(v.Parent.Name) == string.lower(UsernameBox.Text) then
-						KillFunc()
-					end
-				end
-			end
+	for i, v in pairs(Players:GetPlayers()) do
+		if string.lower(v.Name) == string.lower(UsernameBox.Text) and v ~= Player then
+			KillFunc(v)
 		end
 	end
 end)
@@ -689,15 +757,15 @@ UserInputService.InputBegan:Connect(function(Input)
 	elseif Input.KeyCode == Enum.KeyCode.X then
 		Fly = not Fly
 		FlyFunc()
-	elseif Input.KeyCode == Enum.KeyCode.RightControl then
+	elseif Input.KeyCode == Enum.KeyCode.P then
 		if Main.Position == UDim2.new(Main.Position.X.Scale,Main.Position.X.Offset, -1, Main.Position.Y.Offset) then
 			Main:TweenPosition(GUI_Position, Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
 		else
 			GUI_Position = Main.Position
-			
+
 			wait(0.05)
-			
-			Main:TweenPosition(UDim2.new(Main.Position.X.Scale,Main.Position.X.Offset, -1, Main.Position.Y.Offset), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.5, false, nil)
+
+			Main:TweenPosition(UDim2.new(Main.Position.X.Scale,Main.Position.X.Offset, -1, Main.Position.Y.Offset), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.5, false, nil)
 		end
 	end
 end)
@@ -723,11 +791,13 @@ end)
 RunService.RenderStepped:Connect(function()
 	KillAuraButton.Text = "Kill Aura ("..tostring(KillAura)..")"
 	FlyButton.Text = "Fly[X] ("..tostring(Fly)..")"
+	ESPButton.Text = "ESP ("..tostring(ESP)..")"
 	CollisionButton.Text = "Collision ("..tostring(Collision)..")"
 	InfiniteJumpButton.Text = "Infinite Jump ("..tostring(InfiniteJump)..")"
 	SpeedButton.Text = "Speed ("..tostring(Speed)..")"
 	JumpPowerButton.Text = "JumpPower ("..tostring(JumpPower)..")"
 	
+	ESPFunc()
 	KillAuraFunc()
 	CollisionFunc()
 	InfiniteJumpFunc()
