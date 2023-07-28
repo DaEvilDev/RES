@@ -4,9 +4,9 @@
 
 	Created: 2021/02/05
 
-	Updated: 2023/07/27
+	Updated: 2023/07/28
 
-	Version: 1.0
+	Version: 1.1
 
 ]]
 
@@ -20,7 +20,7 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local CurrentCamera = workspace.CurrentCamera
 
-local Version = "1.0"
+local Version = "1.1"
 local Fly = false
 local Speed = false
 local JumpPower = false
@@ -33,10 +33,10 @@ local GUI_Position = nil
 local FlySpeed = 0
 local Direction = {F = 0, B = 0, L = 0, R = 0}
 local Keys = {W = false, A = false, S = false, D = false, Space = false}
-local Whitlisted = {
+local Whitelist = {
 	"TheEvilDeveloper";
 	"yamenO9";
-	"HadiV22660";
+	"HadiV22660" ;
 	"szar20042";
 	"jvxxx989";
 	"0x100030c"
@@ -67,6 +67,7 @@ StarterGui:SetCore("SendNotification", {
 local GUI = Instance.new("ScreenGui", GUI_Parent)
 local Main = Instance.new("Frame", GUI)
 local Content = Instance.new("Frame", Main)
+local ButtonsFrame = Instance.new("ScrollingFrame", Content)
 local Shadow = Instance.new("ImageLabel", Content)
 local About = Instance.new("Frame", Main)
 local Creator = Instance.new("TextLabel", About)
@@ -75,16 +76,17 @@ local CloseButton = Instance.new("TextButton", About)
 local ShowHideHint = Instance.new("TextLabel", About)
 local VersionLabel = Instance.new("TextLabel", About)
 local Title = Instance.new("TextLabel", Content)
-local UsernameBox = Instance.new("TextBox", Content)
-local GoToButton = Instance.new("TextButton", Content)
-local KillAuraButton = Instance.new("TextButton", Content)
-local FlyButton = Instance.new("TextButton", Content)
-local CollisionButton = Instance.new("TextButton", Content)
-local InfiniteJumpButton = Instance.new("TextButton", Content)
-local SpeedButton = Instance.new("TextButton", Content)
-local JumpPowerButton = Instance.new("TextButton", Content)
-local GetAllWeaponsButton = Instance.new("TextButton", Content)
-local AboutButton = Instance.new("TextButton", Content)
+local UsernameBox = Instance.new("TextBox", ButtonsFrame)
+local GoToButton = Instance.new("TextButton", ButtonsFrame)
+local KillButton = Instance.new("TextButton", ButtonsFrame)
+local KillAllButton = Instance.new("TextButton", ButtonsFrame)
+local KillAuraButton = Instance.new("TextButton", ButtonsFrame)
+local FlyButton = Instance.new("TextButton", ButtonsFrame)
+local CollisionButton = Instance.new("TextButton", ButtonsFrame)
+local InfiniteJumpButton = Instance.new("TextButton", ButtonsFrame)
+local SpeedButton = Instance.new("TextButton", ButtonsFrame)
+local JumpPowerButton = Instance.new("TextButton", ButtonsFrame)
+local AboutButton = Instance.new("TextButton", ButtonsFrame)
 
 GUI.Name = "TheEvilDeveloper: Prison Life X"
 
@@ -103,6 +105,14 @@ Content.Size = UDim2.new(1,0,1,0)
 Content.BorderSizePixel = 0
 Content.BackgroundColor3 = Color3.new(5/51,5/51,5/51)
 Content.ClipsDescendants = true
+
+ButtonsFrame.AnchorPoint = Vector2.new(0.5,0)
+ButtonsFrame.Name = "Buttons"
+ButtonsFrame.Position = UDim2.new(0.5,0,0,50)
+ButtonsFrame.Size = UDim2.new(1,0,0.825,0)
+ButtonsFrame.BorderSizePixel = 0
+ButtonsFrame.Transparency = 1
+ButtonsFrame.ClipsDescendants = true
 
 Shadow.AnchorPoint = Vector2.new(0.5,0.5)
 Shadow.Image = "rbxassetid://4224835054"
@@ -207,15 +217,16 @@ UsernameBox.Font = Enum.Font.SourceSans
 UsernameBox.Name = "UsernameBox" 
 UsernameBox.Position = UDim2.new(0.5,0,0.16666665673256,0) 
 UsernameBox.Size = UDim2.new(0,150,0,50) 
-UsernameBox.PlaceholderText = "Username" 
+UsernameBox.PlaceholderText = "Player Username" 
 UsernameBox.TextSize = 14 
 UsernameBox.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 UsernameBox.BorderMode = "Inset"
+UsernameBox.LayoutOrder = 1
 
 GoToButton.FontSize = Enum.FontSize.Size14 
 GoToButton.TextColor3 = Color3.new(1,1,1) 
 GoToButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
-GoToButton.Text = "Go to" 
+GoToButton.Text = "Go to Player" 
 GoToButton.Font = Enum.Font.SourceSans 
 GoToButton.Name = "GoToButton" 
 GoToButton.Position = UDim2.new(0,0,0.16666665673256,0) 
@@ -223,6 +234,7 @@ GoToButton.Size = UDim2.new(0,150,0,50)
 GoToButton.TextSize = 14 
 GoToButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 GoToButton.BorderMode = "Inset"
+GoToButton.LayoutOrder = 2
 
 KillAuraButton.FontSize = Enum.FontSize.Size14 
 KillAuraButton.TextColor3 = Color3.new(1,1,1) 
@@ -235,6 +247,33 @@ KillAuraButton.Size = UDim2.new(0,150,0,50)
 KillAuraButton.TextSize = 14 
 KillAuraButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 KillAuraButton.BorderMode = "Inset"
+KillAuraButton.LayoutOrder = 3
+
+KillButton.FontSize = Enum.FontSize.Size14 
+KillButton.TextColor3 = Color3.new(1,1,1) 
+KillButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+KillButton.Text = "Kill Player" 
+KillButton.Font = Enum.Font.SourceSans 
+KillButton.Name = "KillButton" 
+KillButton.Position = UDim2.new(0,0,0.66666668653488,0) 
+KillButton.Size = UDim2.new(0,150,0,50) 
+KillButton.TextSize = 14 
+KillButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+KillButton.BorderMode = "Inset"
+KillButton.LayoutOrder = 4
+
+KillAllButton.FontSize = Enum.FontSize.Size14 
+KillAllButton.TextColor3 = Color3.new(1,1,1) 
+KillAllButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
+KillAllButton.Text = "Kill All" 
+KillAllButton.Font = Enum.Font.SourceSans 
+KillAllButton.Name = "GetAllWeaponsButton" 
+KillAllButton.Position = UDim2.new(0.5,0,0.83333331346512,0) 
+KillAllButton.Size = UDim2.new(0,150,0,50) 
+KillAllButton.TextSize = 14 
+KillAllButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
+KillAllButton.BorderMode = "Inset"
+KillAllButton.LayoutOrder = 5
 
 FlyButton.FontSize = Enum.FontSize.Size14 
 FlyButton.TextColor3 = Color3.new(1,1,1) 
@@ -295,17 +334,7 @@ JumpPowerButton.TextSize = 14
 JumpPowerButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
 JumpPowerButton.BorderMode = "Inset"
 
-GetAllWeaponsButton.FontSize = Enum.FontSize.Size14 
-GetAllWeaponsButton.TextColor3 = Color3.new(1,1,1) 
-GetAllWeaponsButton.BorderColor3 = Color3.new(2/17,2/17,2/17) 
-GetAllWeaponsButton.Text = "Get All Weapons" 
-GetAllWeaponsButton.Font = Enum.Font.SourceSans 
-GetAllWeaponsButton.Name = "GetAllWeaponsButton" 
-GetAllWeaponsButton.Position = UDim2.new(0.5,0,0.83333331346512,0) 
-GetAllWeaponsButton.Size = UDim2.new(0,150,0,50) 
-GetAllWeaponsButton.TextSize = 14 
-GetAllWeaponsButton.BackgroundColor3 = Color3.new(7/51,7/51,7/51) 
-GetAllWeaponsButton.BorderMode = "Inset"
+
 
 AboutButton.FontSize = Enum.FontSize.Size14 
 AboutButton.TextColor3 = Color3.new(1,1,1) 
@@ -324,7 +353,7 @@ function GoToFunc()
 		if v:IsA("Part") then
 			if v.Name == "HumanoidRootPart" then
 				if v.Parent:FindFirstChild("Humanoid") then
-					if v.Parent.Name == UsernameBox.Text then
+					if string.lower(v.Parent.Name) == string.lower(UsernameBox.Text) then
 						Player.Character.HumanoidRootPart.CFrame = v.CFrame
 					end
 				end
@@ -336,7 +365,7 @@ end
 function KillAuraFunc()
 	if KillAura then
 		for i, v in pairs(Players:GetChildren()) do
-			if v ~= Player and Whitlisted[v.Name] == nil then
+			if v ~= Player and Whitelist[v.Name] == nil then
 				ReplicatedStorage.meleeEvent:FireServer(v)
 			end
 		end
@@ -435,6 +464,7 @@ end
 function SpeedFunc()
 	local Humanoid = Player.Character:FindFirstChild("Humanoid")
 	if Humanoid then
+		
 		if Speed then
 			Humanoid.WalkSpeed = 50
 		else
@@ -449,6 +479,7 @@ function JumpPowerFunc()
 		if not Humanoid.UseJumpPower then 
 			Humanoid.UseJumpPower = true 
 		end
+		
 		if JumpPower then
 			Humanoid.JumpPower = 125
 		else
@@ -457,33 +488,75 @@ function JumpPowerFunc()
 	end
 end
 
-function GetAllWeaponsFunc()
-    local args = {
-        [1] = workspace.Prison_ITEMS.giver:FindFirstChild("Remington 870").ITEMPICKUP
-	[2] = workspace.Prison_ITEMS.giver.M9.ITEMPICKUP
-	[3] = workspace.Prison_ITEMS.giver:FindFirstChild("AK-47").ITEMPICKUP
-	[4] = workspace.Prison_ITEMS.giver.M4A1.ITEMPICKUP
-    }
-    
-    workspace.Remote.ItemHandler:InvokeServer(unpack(args))
+function KillFunc(Target)
+	pcall(function()
+		if Target.Character:FindFirstChild("ForceField") or not workspace:FindFirstChild(Target.Name) or not workspace:FindFirstChild(Target.Name):FindFirstChild("Head") or Target == nil or Target.Character.Parent ~= workspace then return end
+		workspace.Remote.ItemHandler:InvokeServer(workspace.Prison_ITEMS.giver["Remington 870"].ITEMPICKUP)
+		
+		if Target:FindFirstChild("Humanoid") then
+			Target.Humanoid.Health = 0
+		end
+		
+		local MyTeam = GetTeam()
+		if Target.TeamColor.Name == Player.TeamColor.Name then
+			local savedcf = GetPos()
+			local savedcamcf = GetCamPos()
+			workspace.Remote.loadchar:InvokeServer(nil, BrickColor.random().Name)
+			Player.Character.HumanoidRootPart.CFrame = savedcf
+			workspace.CurrentCamera.CFrame = savedcamcf
+			workspace.Remote.ItemHandler:InvokeServer(workspace.Prison_ITEMS.giver["Remington 870"].ITEMPICKUP)
+		end
 
-    local module = nil
-    if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(v) then
-        module = require(game:GetService("Players").LocalPlayer.Backpack[v].GunStates)
-    elseif game:GetService("Players").LocalPlayer.Character:FindFirstChild(v) then
-        module = require(game:GetService("Players").LocalPlayer.Character[v].GunStates)
-    end
-    if module ~= nil then
-        module["MaxAmmo"] = math.huge
-        module["CurrentAmmo"] = math.huge
-        module["StoredAmmo"] = math.huge
-        module["FireRate"] = 0.000001
-        module["Spread"] = 0
-        module["Range"] = math.huge
-        module["Bullets"] = 10
-        module["ReloadTime"] = 0.000001
-        module["AutoFire"] = true
-    end
+		local Gun = Player.Character:FindFirstChild("Remington 870") or Player.Backpack:FindFirstChild("Remington 870")
+
+		local FireEvent = {
+			[1] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [2] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [3] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [4] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [5] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [6] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [7] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}, [8] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()), 
+				["Distance"] = 0, 
+				["Cframe"] = CFrame.new(), 
+				["Hit"] = workspace[Target.Name].Head
+			}
+		}
+
+		game:GetService("ReplicatedStorage").ShootEvent:FireServer(FireEvent, Gun)
+		Gun.Parent = Player.Character
+		Player.Character["Remington 870"]:Destroy()
+	end)
 end
 
 function Draggable(Object: GuiObject, Draggable: boolean)
@@ -569,8 +642,26 @@ JumpPowerButton.MouseButton1Down:Connect(function()
 	JumpPower = not JumpPower
 end)
 
-GetAllWeaponsButton.MouseButton1Down:Connect(function()
-	GetAllWeaponsFunc()
+KillButton.MouseButton1Down:Connect(function()
+	for i, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Part") then
+			if v.Name == "HumanoidRootPart" then
+				if v.Parent:FindFirstChild("Humanoid") then
+					if string.lower(v.Parent.Name) == string.lower(UsernameBox.Text) then
+						KillFunc()
+					end
+				end
+			end
+		end
+	end
+end)
+
+KillAllButton.MouseButton1Down:Connect(function()
+	for i,v in pairs(Players:GetPlayers()) do
+		if v ~= Player and Whitelist[v.Name] == nil then
+			KillFunc(v)
+		end
+	end
 end)
 
 AboutButton.MouseButton1Down:Connect(function()
