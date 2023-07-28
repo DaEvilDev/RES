@@ -6,7 +6,7 @@
 
 	Created: 2019/05/12
   
-	Updated: 2023/07/28
+	Updated: 2021/02/13
 
 	Version: 1.0
 ]]
@@ -2017,6 +2017,8 @@ local _Flight = (function()
 				flyPart.CFrame.p,
 				(camera.CFrame * CFrame.new(0, 0, -2048)).p
 			)
+			
+			humanoid.Sit = true
 
 			for _, part in pairs(character:GetChildren()) do
 				if part:IsA("BasePart") then
