@@ -6,7 +6,7 @@
 	
 	Updated: 2023/07/28
 	
-	Version: 1.0
+	Version: 1.1
 	
 --]]
 
@@ -14,6 +14,7 @@
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
+local Mouse = Player:GetMouse()
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
@@ -21,10 +22,10 @@ local TeleportService = game:GetService("TeleportService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
-local Camera = game:GetService("Workspace").CurrentCamera
 
 -- Settings
-local VERSION = "1.0"
+local VERSION = "1.1"
+local GUI_SIZE = UDim2.new(0, 300, 0, 300)
 local FRAME_COLOR = Color3.fromRGB(40, 40, 40)
 local FRAME2_COLOR = Color3.fromRGB(40/1.25, 40/1.25, 40/1.25)
 local FRAME_TRANSPARENCY = 0
@@ -47,16 +48,15 @@ local TOGGLE_BUTTON = Enum.KeyCode.Y
 -- General
 local GUI = nil
 local GUIParent = nil
-local GUILocation = nil
 local GUIDebounce = false
 local RigType = nil
 local ButtonsDebounce = {}
 
 -- Fly Settings
 local CanFly = false
-local FlySpeed = 75
+local FlySpeed = 3
+local FlySmoothness = 0.6
 local FlyKeybind = Enum.KeyCode.Z
-local FlyKeys = {W = false, A = false, S = false, D = false, Q = false, E = false}
 
 -- Features
 local Fly = false
@@ -87,7 +87,7 @@ repeat wait()
 		GuiParent = CoreGui
 	end
 
-until RigType ~= nil and GuiParent ~= nil
+until RigType ~= nil and GuiParent ~= nil and game:IsLoaded()
 
 function FogFunc()
 	if Fog ~= false then
@@ -189,82 +189,154 @@ function InfiniteZoomFunc()
 end
 
 -- Once functions
-function FlyFunc(Delta)
-	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+local FlyFunc = (function()
+	local Camera = game:GetService("Workspace").CurrentCamera
+	local Character = Player.Character
 
-	if Humanoid ~= nil then
-		local RootPart = Humanoid.RootPart
-		local FlyPart = Lighting:FindFirstChild("TheEvilDeveloper:FlyPart")
+	local Module = {}
 
-		if not FlyPart then
-			FlyPart = Instance.new("MeshPart", Lighting)
-			FlyPart.Size = Player.Character.HumanoidRootPart.Size
-			FlyPart.CFrame = Player.Character.HumanoidRootPart.CFrame
-			FlyPart.Transparency = 1
-			FlyPart.Anchored = false
-			FlyPart.CanCollide = false
-			FlyPart.Name = "TheEvilDeveloper:FlyPart"
+	local Library = {}
+	local Connections = {}
 
-			local Weld = Instance.new("WeldConstraint", FlyPart)
-			Weld.Part0 = Player.Character.HumanoidRootPart
-			Weld.Part1 = FlyPart
-			Weld.Name = "TheEvilDeveloper:Weld"
-		else
-			FlyPart = Lighting["TheEvilDeveloper:FlyPart"]
-		end
-		
-		if RootPart ~= nil and Fly == false and FlyPart then
-			FlyPart.CFrame = RootPart.CFrame
-		end
+	Library.Connect = function(Name, Connection)
+		Connections[Name .. tostring(math.random(1000000, 9999999))] = Connection
+		return Connection
+	end
 
-		if Fly == false or not Humanoid or Humanoid.Health < 1 or not Humanoid.RootPart or not FlyPart then
-			if Fly then
-				Fly = false
-			end
-
-			return
-		else
-			if RootPart ~= nil and Fly == true then
-				Humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
-				
-				if FlyKeys.W then
-					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.LookVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.A then
-					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.RightVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.S then
-					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.LookVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.D then
-					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.RightVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.Q then
-					FlyPart.CFrame = RootPart.CFrame + (Camera.CFrame.UpVector * (Delta * FlySpeed))
-				end
-
-				if FlyKeys.E then
-					FlyPart.CFrame = RootPart.CFrame + (-Camera.CFrame.UpVector * (Delta * FlySpeed))
-				end
-				
-				RootPart.Velocity = Vector3.new(0, 0, 0)
-
-				Camera.Changed:Connect(function(Property)
-					if Property == "CFrame" and Fly ~= false then
-						FlyPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
-						RootPart.CFrame = CFrame.new(RootPart.CFrame.Position, RootPart.CFrame.Position + Camera.CFrame.LookVector)
-					end
-				end)
-
-				RootPart.CFrame = FlyPart.CFrame
+	Library.Disconnect = function(Name)
+		for Title, Connection in pairs(Connections) do
+			if string.find(Title, Name, 1) then
+				Connection:Disconnect()
 			end
 		end
 	end
-end
+
+	local FlyPart = nil
+
+	local function FlyEnd()
+		Library.Disconnect("Fly")
+
+		if FlyPart then
+			FlyPart:Destroy()
+		end
+
+		Character:FindFirstChildWhichIsA("Humanoid").Sit = false
+		if FlyPart and FlyPart.Parent then
+			for _, part in pairs(FlyPart:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.Velocity = Vector3.new()
+				end
+			end
+		end
+	end
+
+	Module.FlyStart = function(Enabled)
+		if Enabled == false then 
+			FlyEnd() 
+			return 
+		end
+
+		local Keys = {W = false, A = false, S = false, D = false, Q = false, E = false}
+		local Location = Instance.new("CFrameValue")
+
+		FlyPart = FlyPart or Instance.new("Part")
+
+		FlyPart.Anchored = true
+
+		pcall(function()
+			FlyPart.CFrame = Character.HumanoidRootPart.CFrame
+		end)
+
+		Library.Connect("Fly", RunService.Heartbeat:Connect(function()
+			if not Character or not Character.Parent or not Character:FindFirstChild("HumanoidRootPart") then 
+				return 
+			end
+
+			local PrimaryPart = Character.HumanoidRootPart
+			local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+
+			local X, Y, Z = 0, 0, 0
+
+			if Keys.W then Z = -1 * FlySpeed end
+			if Keys.A then X = -1 * FlySpeed end
+			if Keys.S then Z = 1 * FlySpeed end
+			if Keys.D then X = 1 * FlySpeed end
+			if Keys.Q then Y = 1 * FlySpeed end
+			if Keys.E then Y = -1 * FlySpeed end
+
+			FlyPart.CFrame = CFrame.new(
+				FlyPart.CFrame.p,
+				(Camera.CFrame * CFrame.new(0, 0, -2048)).p
+			)
+
+			Humanoid.Sit = true
+
+			for _, part in pairs(Character:GetChildren()) do
+				if part:IsA("BasePart") then
+					part.Velocity = Vector3.new()
+				end
+			end
+
+			local MoveTo = CFrame.new(X, Y, Z)
+
+			Location.Value = Location.Value:lerp(MoveTo, FlySmoothness)
+			FlyPart.CFrame = FlyPart.CFrame:lerp(FlyPart.CFrame * Location.Value, FlySmoothness)
+			PrimaryPart.CFrame = FlyPart.CFrame
+		end))
+
+		Library.Connect("Fly", UserInputService.InputBegan:Connect(function(Key, Event)
+			if Event then 
+				return 
+			end
+
+			local Code = Key.KeyCode
+			local Codes = Enum.KeyCode
+
+			if Code == Codes.W then
+				Keys.W = true
+			elseif Code == Codes.A then
+				Keys.A = true
+			elseif Code == Codes.S then
+				Keys.S = true
+			elseif Code == Codes.D then
+				Keys.D = true
+			elseif Code == Codes.Space then
+				Keys.Q = true
+			elseif Code == Codes.E then
+				Keys.E = true
+			end
+		end))
+
+		Library.Connect("Fly", UserInputService.InputEnded:Connect(function(Key, Event)
+			if Event then 
+				return 
+			end
+
+			local Code = Key.KeyCode
+			local Codes = Enum.KeyCode
+
+			if Code == Codes.W then
+				Keys.W = false
+			elseif Code == Codes.A then
+				Keys.A = false
+			elseif Code == Codes.S then
+				Keys.S = false
+			elseif Code == Codes.D then
+				Keys.D = false
+			elseif Code == Codes.Space then
+				Keys.Q = false
+			elseif Code == Codes.E then
+				Keys.E = false
+			end
+		end))
+	end
+
+	Player.CharacterAdded:Connect(function(newCharacter)
+		Character = newCharacter
+	end)
+
+	return Module
+end)()
 
 function RejoinFunc()
 	TeleportService:Teleport(game.PlaceId, Player)
@@ -478,7 +550,6 @@ local function SetButton(Button: GuiObject, Status: boolean)
 end
 
 -- Exploit Main
-
 if RunService:IsStudio() ~= false then
 	GUIParent = Player.PlayerGui
 else
@@ -612,7 +683,12 @@ else
 	CreateButton("Fly_Button", "Fly", 1, nil, nil, ButtonsFrame, "Unchecked", 
 		function()
 			CanFly = true
+
 			Fly = not Fly
+			
+			wait(0.01)
+			
+			FlyFunc.FlyStart(Fly)
 		end
 	)
 
@@ -688,7 +764,7 @@ else
 		end
 	)
 
-	MainFrame:TweenSize(UDim2.new(0, 300, 0, 300), EASING_DIRECTION, EASING_STYLE, 0.50, false, nil)
+	MainFrame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, 0.50, false, nil)
 
 	StarterGui:SetCore("SendNotification", {
 		Title = "Yield X "..VERSION;
@@ -706,12 +782,10 @@ UserInputService.InputBegan:Connect(function(Key)
 
 		GUIDebounce = true
 
-		if GUI.Main_Frame.Position == UDim2.new(GUI.Main_Frame.Position.X.Scale, 0, -1, 0) then
-			GUI.Main_Frame:TweenPosition(GUILocation, EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+		if GUI.Main_Frame.Size == UDim2.new(0, 0, 0, 0) then
+			GUI.Main_Frame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
 		else
-			GUILocation = GUI.Main_Frame.Position
-			wait(0.05)
-			GUI.Main_Frame:TweenPosition(UDim2.new(GUI.Main_Frame.Position.X.Scale, 0, -1, 0), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+			GUI.Main_Frame:TweenSize(UDim2.new(0, 0, 0, 0), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
 		end
 
 		wait(0.5)
@@ -719,34 +793,10 @@ UserInputService.InputBegan:Connect(function(Key)
 		GUIDebounce = false
 	elseif Key.KeyCode == FlyKeybind and CanFly ~= false then
 		Fly = not Fly
-	elseif Key.KeyCode == Enum.KeyCode.W then
-		FlyKeys.W = true
-	elseif Key.KeyCode == Enum.KeyCode.S then
-		FlyKeys.S = true
-	elseif Key.KeyCode == Enum.KeyCode.A then
-		FlyKeys.A = true
-	elseif Key.KeyCode == Enum.KeyCode.D then
-		FlyKeys.D = true
-	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
-		FlyKeys.Q = true
-	elseif Key.KeyCode == Enum.KeyCode.E then
-		FlyKeys.E = true
-	end
-end)
 
-UserInputService.InputEnded:Connect(function(Key)
-	if Key.KeyCode == Enum.KeyCode.W then
-		FlyKeys.W = false
-	elseif Key.KeyCode == Enum.KeyCode.S then
-		FlyKeys.S = false
-	elseif Key.KeyCode == Enum.KeyCode.A then
-		FlyKeys.A = false
-	elseif Key.KeyCode == Enum.KeyCode.D then
-		FlyKeys.D = false
-	elseif Key.KeyCode == Enum.KeyCode.Q or Key.KeyCode == Enum.KeyCode.Space then
-		FlyKeys.Q = false
-	elseif Key.KeyCode == Enum.KeyCode.E then
-		FlyKeys.E = false
+		wait(0.01)
+
+		FlyFunc.FlyStart(Fly)
 	end
 end)
 
@@ -756,8 +806,6 @@ RunService.Heartbeat:Connect(function(Delta)
 	end
 
 	if GUI ~= nil then
-
-
 		if Fly_Button then
 			SetButton(Fly_Button, Fly)
 			if CanFly == true then
@@ -798,17 +846,14 @@ RunService.Heartbeat:Connect(function(Delta)
 		else
 			Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
 		end
-
 	end
 
 	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
 
 	if Humanoid == nil or Humanoid.Health <= 0 then
-		Fly = false
 		InfiniteJump = false
 	end
 
-	FlyFunc(Delta)
 	FogFunc()
 	ESPFunc()
 	CollisionFunc()
