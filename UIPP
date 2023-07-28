@@ -2028,7 +2028,6 @@ local _Flight = (function()
 			cf.Value = cf.Value:lerp(moveDir, module.Options.Smoothness)
 			flyPart.CFrame = flyPart.CFrame:lerp(flyPart.CFrame * cf.Value, module.Options.Smoothness)
 			primaryPart.CFrame = flyPart.CFrame
-			humanoid.Sit = true
 		end))
 		lib.connect("fly", UserInputService.InputBegan:Connect(function(input, event)
 			if event then return end
