@@ -222,8 +222,12 @@ local FlyFunc = (function()
 		if FlyPart then
 			FlyPart:Destroy()
 		end
-
-		Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Freefall)
+		
+		local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+		
+		if Humanoid then 
+			Humanoid.Sit = false
+		end
 		
 		if FlyPart and FlyPart.Parent then
 			for _, part in pairs(FlyPart:GetDescendants()) do
@@ -273,7 +277,9 @@ local FlyFunc = (function()
 				(Camera.CFrame * CFrame.new(0, 0, -2048)).p
 			)
 
-			Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+			if Humanoid.Health > 0 then 
+				Humanoid.Sit = true
+			end
 
 			for _, part in pairs(Character:GetChildren()) do
 				if part:IsA("BasePart") then
@@ -353,6 +359,8 @@ function ForceResetFunc()
 		Fly = false
 		InfiniteJump = false
 
+		FlyFunc.FlyStart(Fly)
+		
 		Humanoid.Health = 0
 
 		for i, v in pairs(Player.Character:GetDescendants()) do
