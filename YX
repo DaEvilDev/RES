@@ -43,6 +43,7 @@ local EASING_DIRECTION = Enum.EasingDirection.Out
 local FOG_START = Lighting.FogStart
 local FOG_END = Lighting.FogEnd
 local MAX_ZOOM = Player.CameraMaxZoomDistance
+local MOUSE_BEHAVIOR = UserInputService.MouseBehavior
 local TOGGLE_BUTTON = Enum.KeyCode.Y
 
 -- General
@@ -54,8 +55,8 @@ local ButtonsDebounce = {}
 
 -- Fly Settings
 local CanFly = false
-local FlySpeed = 3
-local FlySmoothness = 0.6
+local FlySpeed = 8
+local FlySmoothness = 0.15
 local FlyKeybind = Enum.KeyCode.Z
 
 -- Features
@@ -222,7 +223,8 @@ local FlyFunc = (function()
 			FlyPart:Destroy()
 		end
 
-		Character:FindFirstChildWhichIsA("Humanoid").Sit = false
+		Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Freefall)
+		
 		if FlyPart and FlyPart.Parent then
 			for _, part in pairs(FlyPart:GetDescendants()) do
 				if part:IsA("BasePart") then
@@ -271,7 +273,7 @@ local FlyFunc = (function()
 				(Camera.CFrame * CFrame.new(0, 0, -2048)).p
 			)
 
-			Humanoid.Sit = true
+			Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
 
 			for _, part in pairs(Character:GetChildren()) do
 				if part:IsA("BasePart") then
@@ -726,6 +728,8 @@ else
 	
 	CreateButton("Unlock_FPS_Button", "FPS Unlocked", 7, nil, nil, ButtonsFrame, "Unchecked", 
 		function()
+			FPSUnlocked = not FPSUnlocked
+			
 			local Success, Error = pcall(function()
 				if FPSUnlocked == true then
 					setfpscap(999)
@@ -787,7 +791,7 @@ else
 	)
 
 	MainFrame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
-
+		
 	StarterGui:SetCore("SendNotification", {
 		Title = "Yield X "..VERSION;
 		Text = "Made by: TheEvilDeveloper\n@DaEvilDev\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"; 
@@ -805,8 +809,10 @@ UserInputService.InputBegan:Connect(function(Key)
 		GUIDebounce = true
 
 		if GUI.Main_Frame.Size == UDim2.new(0, 0, 0, 0) then
+			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 			GUI.Main_Frame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
 		else
+			UserInputService.MouseBehavior = MOUSE_BEHAVIOR
 			GUI.Main_Frame:TweenSize(UDim2.new(0, 0, 0, 0), EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
 		end
 
@@ -874,12 +880,6 @@ RunService.Heartbeat:Connect(function(Delta)
 		else
 			Unlock_FPS_Button = GetButton("Unlock_FPS_Button")
 		end
-	end
-
-	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-
-	if Humanoid == nil or Humanoid.Health <= 0 then
-		InfiniteJump = false
 	end
 
 	FogFunc()
