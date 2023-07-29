@@ -1,10 +1,10 @@
 --[[
 
-	Made by: TheEvilDeveloper ( @DaEvilDev )
+	Made by: TheEvilDeveloper
 	
 	Created: 2023/07/24
 	
-	Updated: 2023/07/28
+	Updated: 2023/07/29
 	
 	Version: 1.1
 	
@@ -14,7 +14,6 @@
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
@@ -38,6 +37,7 @@ local TEXT_FONT = Enum.Font.Nunito
 local ROUNDED_EDGES = UDim.new(0, 15)
 local BUTTON_EFFECT = 1.25
 local BUTTON_INTERVAL = 0.085
+local EFFECT_INTERVAL = 0.5
 local EASING_STYLE = Enum.EasingStyle.Sine
 local EASING_DIRECTION = Enum.EasingDirection.Out
 local FOG_START = Lighting.FogStart
@@ -63,6 +63,7 @@ local Fly = false
 local ESP = false
 local Fog = true
 local Collision = true
+local FPSUnlocked = false
 local InfiniteZoom = false
 local InfiniteJump = false
 
@@ -73,6 +74,7 @@ local ESP_Button = nil
 local CollisionButton = nil
 local Infinite_Jump_Button = nil
 local Infinite_Zoom_Button = nil
+local Unlock_FPS_Button = nil
 
 repeat wait()
 	local Humanoid = Player.Character:FindFirstChildOfClass("Humanoid") 
@@ -661,7 +663,7 @@ else
 	Credits.TextXAlignment = Enum.TextXAlignment.Left
 	Credits.TextYAlignment = Enum.TextYAlignment.Top
 	Credits.Name = "Credits"
-	Credits.Text = "UI Design&Programming:\n\nTheEvilDeveloper\n@DaEvilDev\n\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"
+	Credits.Text = "Design & Programming:\n\nTheEvilDeveloper\n@DaEvilDev\n\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"
 
 	local ButtonsFrame = Instance.new("ScrollingFrame", ContentFrame)
 	ButtonsFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -721,13 +723,33 @@ else
 			InfiniteZoom = not InfiniteZoom
 		end
 	)
+	
+	CreateButton("Unlock_FPS_Button", "FPS Unlocked", 7, nil, nil, ButtonsFrame, "Unchecked", 
+		function()
+			local Success, Error = pcall(function()
+				if FPSUnlocked == true then
+					set_fps_cap(999)
+				else
+					set_fps_cap(60)
+				end
+			end)
+
+			if not Success then
+				StarterGui:SetCore("SendNotification", {
+					Title = "Yield X "..VERSION;
+					Text = "Your exploit does not support that."; 
+					Duration = 5;
+				})
+			end
+		end
+	)
 
 	-- Click-To-Do Buttons
-	CreateButton("Force_Reset_Button", "Force Reset", 7, nil, nil, ButtonsFrame, nil, ForceResetFunc)
+	CreateButton("Force_Reset_Button", "Force Reset", 9, nil, nil, ButtonsFrame, nil, ForceResetFunc)
 
-	CreateButton("Teleport_Tool_Button", "Teleport Tool", 8, nil, nil, ButtonsFrame, nil, TeleportToolFunc)
+	CreateButton("Teleport_Tool_Button", "Teleport Tool", 10, nil, nil, ButtonsFrame, nil, TeleportToolFunc)
 
-	CreateButton("Rejoin_Button", "Rejoin Experience", 9, nil, nil, ButtonsFrame, nil, RejoinFunc)
+	CreateButton("Rejoin_Button", "Rejoin Experience", 11, nil, nil, ButtonsFrame, nil, RejoinFunc)
 
 	CreateButton("About_Button", "About?", 999, nil, nil, ButtonsFrame, nil, 
 		function()
@@ -764,12 +786,12 @@ else
 		end
 	)
 
-	MainFrame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, 0.50, false, nil)
+	MainFrame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
 
 	StarterGui:SetCore("SendNotification", {
 		Title = "Yield X "..VERSION;
 		Text = "Made by: TheEvilDeveloper\n@DaEvilDev\nPress <"..string.gsub(tostring(TOGGLE_BUTTON), "Enum.KeyCode.", "").."> to toggle GUI"; 
-		Duration = 500;
+		Duration = 25;
 		Button1 = "OK";
 	})
 end
@@ -783,9 +805,9 @@ UserInputService.InputBegan:Connect(function(Key)
 		GUIDebounce = true
 
 		if GUI.Main_Frame.Size == UDim2.new(0, 0, 0, 0) then
-			GUI.Main_Frame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+			GUI.Main_Frame:TweenSize(GUI_SIZE, EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
 		else
-			GUI.Main_Frame:TweenSize(UDim2.new(0, 0, 0, 0), EASING_DIRECTION, EASING_STYLE, 0.25, false, nil)
+			GUI.Main_Frame:TweenSize(UDim2.new(0, 0, 0, 0), EASING_DIRECTION, EASING_STYLE, EFFECT_INTERVAL, false, nil)
 		end
 
 		wait(0.5)
@@ -845,6 +867,12 @@ RunService.Heartbeat:Connect(function(Delta)
 			SetButton(Infinite_Zoom_Button, InfiniteZoom)
 		else
 			Infinite_Zoom_Button = GetButton("Infinite_Zoom_Button")
+		end
+		
+		if Unlock_FPS_Button then
+			SetButton(Unlock_FPS_Button, FPSUnlocked)
+		else
+			Unlock_FPS_Button = GetButton("Unlock_FPS_Button")
 		end
 	end
 
