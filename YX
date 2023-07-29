@@ -728,9 +728,9 @@ else
 		function()
 			local Success, Error = pcall(function()
 				if FPSUnlocked == true then
-					set_fps_cap(999)
+					setfpscap(999)
 				else
-					set_fps_cap(60)
+					setfpscap(60)
 				end
 			end)
 
